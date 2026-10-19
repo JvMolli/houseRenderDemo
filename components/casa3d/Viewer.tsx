@@ -9,12 +9,11 @@ const DPR: [number, number] = [1, 2];
  * Canvas de three. Solo cliente: se carga con next/dynamic y ssr:false.
  * `flat` = sin tone mapping, como el original. Sombras PCF (en three r18x
  * PCFSoftShadowMap ya no existe y PCFShadowMap es la versión suave).
- * La escena es estática: solo se renderiza cuando algo cambia (órbita con
- * inercia, hora, vista o paredes), así en reposo no gasta GPU.
+ * Render continuo: la gente del patio se mueve.
  */
 export default function Viewer(props: SceneProps) {
   return (
-    <Canvas frameloop="demand" shadows="percentage" flat dpr={DPR} camera={CAMERA}>
+    <Canvas shadows="percentage" flat dpr={DPR} camera={CAMERA}>
       <Scene {...props} />
     </Canvas>
   );

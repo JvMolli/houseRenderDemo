@@ -4,10 +4,11 @@
  */
 import {
   BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
-  OUTCROP, OUTDOOR_STAIR, OUTLINE, POOL, PUMP, STAIR, STRIP, TERRACE, TERRACE_STEPS, type SPt,
+  LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STRIP, SWIMMER, TERRACE, TERRACE_SET,
+  TERRACE_STEPS, type Outfit, type Pose, type SPt,
 } from './parcel';
 import { GROUND_SO_WALL, GROUND_WINDOW, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
-import { mbox, pbox, type BoxSolid, type Solid } from './shapes';
+import { mbox, pbox, type BoxSolid, type CylSolid, type Solid } from './shapes';
 import { FH, OX, OZ, S, X, Z, type Vec3 } from './units';
 
 /** Polígono del boceto -> px del plano. */
@@ -232,6 +233,93 @@ function barbecue(): Solid[] {
   return boxes.map(mbox);
 }
 
+/* ---- Mobiliario del patio ---------------------------------------------------------- */
+
+/** Sketch -> metros (x, z). */
+const sm = (p: SPt) => m(fromSketch(p));
+
+/** Caja por esquinas en metros. */
+const mb = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, mat: MaterialKey): BoxSolid =>
+  mbox([Math.abs(x1 - x0), y1 - y0, z1 - z0, Math.min(x0, x1), y0, z0, mat]);
+
+/** Tumbona plana: bastidor blanco, cojín y patas; a lo largo de X. */
+function lounger([x, z]: [number, number]): Solid[] {
+  const { length: L, width: W } = LOUNGERS, y = LEVELS.garden;
+  return [
+    mb(x - L / 2, x + L / 2, y + 0.18, y + 0.3, z - W / 2, z + W / 2, 'white'),
+    mb(x - L / 2 + 0.02, x + L / 2 - 0.02, y + 0.3, y + 0.35, z - W / 2 + 0.03, z + W / 2 - 0.03, 'cushion'),
+    ...[-1, 1].flatMap(i => [-1, 1].map(k =>
+      mb(x + i * (L / 2 - 0.08) - 0.025, x + i * (L / 2 - 0.08) + 0.025, y, y + 0.18, z + k * (W / 2 - 0.06) - 0.025, z + k * (W / 2 - 0.06) + 0.025, 'white'))),
+  ];
+}
+
+/** Silla de madera; `dir` = hacia dónde mira quien se sienta (+1: +X, -1: -X). */
+function chair([x, z]: [number, number], dir: 1 | -1): Solid[] {
+  const y = LEVELS.raised, s = 0.23, X0 = (lx: number) => x + dir * lx;
+  return [
+    mb(X0(-s), X0(s), y + 0.4, y + 0.45, z - s, z + s, 'wood'),
+    mb(X0(-0.25), X0(-0.21), y + 0.45, y + 0.9, z - s, z + s, 'wood'),
+    ...[-1, 1].flatMap(i => [-1, 1].map(k =>
+      mb(X0(i * (s - 0.03)) - 0.02, X0(i * (s - 0.03)) + 0.02, y, y + 0.4, z + k * (s - 0.03) - 0.02, z + k * (s - 0.03) + 0.02, 'wood'))),
+  ];
+}
+
+/** Mesita redonda: tablero blanco sobre pie grafito. */
+function roundTable([x, z]: [number, number]): Solid[] {
+  const y = LEVELS.raised;
+  const c = (r: number, y0: number, h: number, mat: MaterialKey): CylSolid => ({ kind: 'cyl', r, h, position: [x, y0 + h / 2, z], mat });
+  return [c(0.32, y + 0.55, 0.03, 'white'), c(0.03, y, 0.55, 'graphite'), c(0.2, y, 0.02, 'graphite')];
+}
+
+const CHAIR_DIRS = [1, -1] as const;
+
+/** Tumbonas, sillas y mesita de la terraza. */
+function patioFurniture(): Solid[] {
+  return [
+    ...LOUNGERS.at.flatMap(p => lounger(sm(p))),
+    ...TERRACE_SET.chairs.flatMap((p, i) => chair(sm(p), CHAIR_DIRS[i])),
+    ...roundTable(sm(TERRACE_SET.table)),
+  ];
+}
+
+/* ---- Personas -------------------------------------------------------------------- */
+
+/** Qué hace cada figura (animación). */
+export type Activity = 'grill' | 'sunbathe' | 'sunbatheArm' | 'swim' | 'sip';
+
+/** Figura: postura, posición (m), giro, ropa y actividad. Mira hacia +X antes de girar. */
+export interface PersonSpec {
+  pose: Pose;
+  position: Vec3;
+  rotationY: number;
+  outfit: Outfit;
+  activity: Activity;
+  /** Desfase (s) para que no se muevan todos a la vez. */
+  phase: number;
+  holding?: 'mojito' | 'spatula';
+  /** Recorrido de quien nada: elipse (m) dentro de la piscina. */
+  lap?: { center: [number, number]; rx: number; rz: number };
+}
+
+/** Gente en el patio: barbacoa, dos tomando el sol, una en la piscina y dos en la terraza con un mojito. */
+export const PEOPLE: readonly PersonSpec[] = (() => {
+  const [bx, bz] = [X(GROUND_SO_WALL[0]) - BBQ.gap - BBQ.depth - 0.35, (Z(GROUND_WINDOW.a) + Z(GROUND_WINDOW.b)) / 2];
+  const [s1, s2] = LOUNGERS.at.map(sm), [wx, wz] = sm(SWIMMER);
+  const seats = TERRACE_SET.chairs.map(sm);
+  const pool = sketchRectCenter(POOL.inner, 0).size;
+  return [
+    { pose: 'standing', position: [bx, LEVELS.garden, bz], rotationY: 0, outfit: OUTFITS.griller, activity: 'grill', phase: 0, holding: 'spatula' },
+    { pose: 'lying', position: [s1[0], LEVELS.garden, s1[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather1, activity: 'sunbathe', phase: 0 },
+    { pose: 'lying', position: [s2[0], LEVELS.garden, s2[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather2, activity: 'sunbatheArm', phase: 3 },
+    {
+      pose: 'swimming', position: [wx, LEVELS.garden - POOL.waterBelow, wz], rotationY: 0, outfit: OUTFITS.swimmer,
+      activity: 'swim', phase: 0, lap: { center: [wx, wz], rx: pool[0] / 2 - 0.8, rz: pool[1] / 2 - 0.8 },
+    },
+    { pose: 'sitting', position: [seats[0][0], LEVELS.raised, seats[0][1]], rotationY: 0, outfit: OUTFITS.guest1, activity: 'sip', phase: 0, holding: 'mojito' },
+    { pose: 'sitting', position: [seats[1][0], LEVELS.raised, seats[1][1]], rotationY: Math.PI, outfit: OUTFITS.guest2, activity: 'sip', phase: 3.5, holding: 'mojito' },
+  ];
+})();
+
 /** Sólidos estáticos de la parcela (se fusionan por material). */
 export const PARCEL_SOLIDS: readonly Solid[] = [
   ...boundarySolids(),
@@ -245,6 +333,7 @@ export const PARCEL_SOLIDS: readonly Solid[] = [
   ...hatchWall(),
   ...gate(),
   ...barbecue(),
+  ...patioFurniture(),
 ];
 
 /** Centro (m) y tamaño de un rectángulo del boceto, para planos sueltos (agua, barra rayada). */

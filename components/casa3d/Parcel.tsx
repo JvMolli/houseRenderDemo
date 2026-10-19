@@ -6,6 +6,7 @@ import {
 } from '@/lib/casa3d/parcelShapes';
 import { Car } from './Car';
 import { useMaterials } from './MaterialsContext';
+import { People } from './People';
 import { Solids } from './Solids';
 
 const POOL_INNER = rectPoints(sketchRect(POOL.inner));
@@ -57,6 +58,7 @@ export const Parcel = memo(function Parcel() {
 
       <Solids items={PARCEL_SOLIDS} />
       <Car />
+      <People />
     </>
   );
 });
