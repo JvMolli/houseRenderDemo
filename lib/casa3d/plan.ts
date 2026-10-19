@@ -231,6 +231,8 @@ export const PHOTOS: readonly Photo[] = [
   { id: 'bano', label: 'Baño', src: '/fotos/bano.jpg', width: 941, height: 1672, x: 640, z: 1110, y: 1.5 },
   // Exterior: sobre el césped del patio, entre la piscina y la terraza (y negativa: por debajo del piso)
   { id: 'exterior', label: 'Exterior: casa, patio y piscina', src: '/fotos/exterior.png', width: 1900, height: 828, x: -590, z: 1836, y: -0.8 },
+  // Garaje: sobre la zona de coches, entre el C3 y la Harley
+  { id: 'garaje', label: 'Garaje: Citroën, Harley y barbacoa', src: '/fotos/garaje.png', width: 1899, height: 828, x: -779, z: 901, y: 0 },
 ];
 
 /* =====================================================================
