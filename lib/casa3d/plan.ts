@@ -191,6 +191,26 @@ export const CEILING_LIGHTS: readonly { room: string; x: Px; z: Px }[] = [
 ];
 
 /* =====================================================================
+   FOTOS: icono flotante en la maqueta que abre la imagen
+   x/z en px del plano, y en metros sobre el suelo del piso
+   ===================================================================== */
+
+export interface Photo {
+  id: string;
+  label: string;
+  src: string;
+  width: number;
+  height: number;
+  x: Px;
+  z: Px;
+  y: number;
+}
+
+export const PHOTOS: readonly Photo[] = [
+  { id: 'salon', label: 'Salón visto desde la cocina', src: '/fotos/salon.jpg', width: 1122, height: 1402, x: 354, z: 300, y: 1.5 },
+];
+
+/* =====================================================================
    ARMARIOS Y DORMITORIOS
    ===================================================================== */
 

@@ -1,4 +1,5 @@
 .wrap {
+  position: relative;
   width: 100%;
   height: min(70vh, 640px);
   min-height: 360px;
@@ -58,4 +59,65 @@
   font-size: 13px;
   color: var(--muted);
   margin: 8px 0 0;
+}
+
+.photoSpot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(31, 111, 74, 0.92);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.photoSpot:hover {
+  background: rgba(31, 111, 74, 1);
+}
+
+.photoDialog {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: 92vw;
+  max-height: 92vh;
+  overflow: visible;
+}
+
+.photoDialog::backdrop {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.photo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 92vw;
+  max-height: 86vh;
+  border-radius: 8px;
+}
+
+.photoClose {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: #fff;
+  color: #2a2725;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }

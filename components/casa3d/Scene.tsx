@@ -13,6 +13,8 @@ import { HouseLights } from './HouseLights';
 import { Kitchen } from './Kitchen';
 import { Living } from './Living';
 import { MaterialsProvider } from './MaterialsContext';
+import type { PhotoSpotRefs } from './PhotoButtons';
+import { PhotoAnchors } from './PhotoAnchors';
 import { Sun } from './Sun';
 import { Walls } from './Walls';
 
@@ -27,6 +29,8 @@ export interface SceneProps {
   low: boolean;
   lights: boolean;
   view: ViewRequest;
+  /** Botones de las fotos, que se colocan sobre el lienzo. */
+  photoSpots: PhotoSpotRefs;
 }
 
 /** Mueve cámara y objetivo de los controles al pulsar una vista. */
@@ -43,7 +47,7 @@ function CameraRig({ view }: { view: ViewRequest }) {
   return null;
 }
 
-export function Scene({ sun, low, lights, view }: SceneProps) {
+export function Scene({ sun, low, lights, view, photoSpots }: SceneProps) {
   const background = useMemo(() => new Color().setRGB(...lerpHex(SKY_NIGHT, SKY_DAY, sun.kd), SRGBColorSpace), [sun.kd]);
 
   return (
@@ -53,6 +57,7 @@ export function Scene({ sun, low, lights, view }: SceneProps) {
       <Sun sun={sun} />
       <OrbitControls makeDefault enableDamping maxPolarAngle={Math.PI / 2 - 0.02} maxDistance={40} />
       <CameraRig view={view} />
+      <PhotoAnchors spots={photoSpots} />
 
       <Building />
       <group position-y={FH}>
