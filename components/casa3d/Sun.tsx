@@ -17,7 +17,7 @@ const SHADOW_HALF = 17;
 const SHADOW_MAP: [number, number] = [3072, 3072];
 
 /** Luz direccional (con sombras) y esfera del sol. */
-export function Sun({ sun }: { sun: SunState }) {
+export function Sun({ sun, ball = true, gain = 1, softness = 1 }: { sun: SunState; ball?: boolean; gain?: number; softness?: number }) {
   const m = useMaterials();
   // El objetivo del sol tiene que estar en la escena para que su matriz se actualice.
   const target = useMemo(() => {
@@ -33,12 +33,13 @@ export function Sun({ sun }: { sun: SunState }) {
       <directionalLight
         target={target}
         position={along(PARCEL_CENTER, sun.dir, 25)}
-        intensity={lightIntensities(sun).sun}
+        intensity={lightIntensities(sun).sun * gain}
         color={color}
         castShadow
         shadow-mapSize={SHADOW_MAP}
         shadow-bias={-0.0005}
         shadow-normalBias={0.02}
+        shadow-radius={softness}
         shadow-camera-left={-SHADOW_HALF}
         shadow-camera-right={SHADOW_HALF}
         shadow-camera-top={SHADOW_HALF}
@@ -46,7 +47,7 @@ export function Sun({ sun }: { sun: SunState }) {
         shadow-camera-near={1}
         shadow-camera-far={60}
       />
-      <mesh material={m.sun} position={along(C, sun.dir, 15)} visible={sun.up}>
+      <mesh material={m.sun} position={along(C, sun.dir, 15)} visible={sun.up && ball}>
         <sphereGeometry args={[0.4, 16, 16]} />
       </mesh>
     </>

@@ -207,3 +207,60 @@ export function hatch() {
   for (const o of [-N, 0, N]) { x.beginPath(); x.moveTo(o, N); x.lineTo(o + N, 0); x.stroke(); }
   return c;
 }
+
+/**
+ * Mapa de normales a partir de un canvas: la luminancia hace de altura (lo
+ * oscuro queda hundido: juntas, vetas). Repite en los bordes, como las texturas.
+ */
+export function normalMap(src: HTMLCanvasElement, strength = 2) {
+  const w = src.width, h = src.height, s = ctx(src).getImageData(0, 0, w, h).data;
+  const L = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) L[i] = (0.299 * s[i * 4] + 0.587 * s[i * 4 + 1] + 0.114 * s[i * 4 + 2]) / 255;
+  const c = cv(w, h), x = ctx(c), d = x.createImageData(w, h);
+  const at = (px: number, py: number) => L[((py + h) % h) * w + ((px + w) % w)];
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    const dx = (at(px + 1, py) - at(px - 1, py)) * strength, dy = (at(px, py + 1) - at(px, py - 1)) * strength;
+    const len = Math.hypot(dx, dy, 1), i = (py * w + px) * 4;
+    d.data[i] = (-dx / len * 0.5 + 0.5) * 255;
+    d.data[i + 1] = (dy / len * 0.5 + 0.5) * 255; // el canvas crece hacia abajo; la textura, hacia arriba
+    d.data[i + 2] = (1 / len * 0.5 + 0.5) * 255;
+    d.data[i + 3] = 255;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+
+/** Ruido suave que encaja al repetirse (suma de senos), base de las ondas del agua. */
+export function ripples(rnd: Rng, N = 256) {
+  const c = cv(N, N), x = ctx(c), d = x.createImageData(N, N);
+  const waves = Array.from({ length: 9 }, () => ({
+    kx: (1 + Math.floor(rnd() * 5)) * (rnd() < 0.5 ? -1 : 1), ky: 1 + Math.floor(rnd() * 5), p: rnd() * 6.283, a: 0.5 + rnd(),
+  }));
+  for (let py = 0; py < N; py++) for (let px = 0; px < N; px++) {
+    let v = 0;
+    for (const w of waves) v += w.a * Math.sin(6.283 * (w.kx * px + w.ky * py) / N + w.p);
+    const g = 128 + v * 14, i = (py * N + px) * 4;
+    d.data[i] = d.data[i + 1] = d.data[i + 2] = g; d.data[i + 3] = 255;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+
+/** Campo seco de los alrededores: tierra y hierba agostada con manchas. */
+export function field(rnd: Rng) {
+  const N = 512, c = noise(rnd, 158, 150, 126, 18, N), x = ctx(c);
+  for (let i = 0; i < 260; i++) {
+    const g = rnd(), r = 8 + rnd() * 46;
+    x.fillStyle = g < 0.45
+      ? 'rgba(' + (122 + rnd() * 24 | 0) + ',' + (126 + rnd() * 20 | 0) + ',' + (96 + rnd() * 16 | 0) + ',0.14)'
+      : 'rgba(' + (176 + rnd() * 24 | 0) + ',' + (164 + rnd() * 20 | 0) + ',' + (138 + rnd() * 16 | 0) + ',0.14)';
+    x.beginPath(); x.arc(rnd() * N, rnd() * N, r, 0, 7); x.fill();
+  }
+  x.lineWidth = 1;
+  for (let i = 0; i < 2600; i++) {
+    const px = rnd() * N, py = rnd() * N, g = rnd();
+    x.strokeStyle = 'rgba(' + (160 + g * 40 | 0) + ',' + (150 + g * 34 | 0) + ',' + (112 + g * 20 | 0) + ',0.3)';
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + (rnd() - 0.5) * 3, py - 2 - rnd() * 4); x.stroke();
+  }
+  return c;
+}

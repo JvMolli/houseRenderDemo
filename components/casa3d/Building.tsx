@@ -1,11 +1,11 @@
 import { ShapeGeometry } from 'three';
 import { memo, useEffect, useMemo } from 'react';
 import { planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
-import { COMPASS, FP, GROUND, GROUND_SO_WALL, GROUND_WINDOW, type Pt } from '@/lib/casa3d/plan';
+import { COMPASS, FP, GROUND, GROUND_RECT, GROUND_SO_WALL, GROUND_WINDOW, type Pt } from '@/lib/casa3d/plan';
 import { LEVELS } from '@/lib/casa3d/parcel';
 import { OUTLINE_PLAN } from '@/lib/casa3d/parcelShapes';
 import { GROUND_FLOOR_SOLIDS } from '@/lib/casa3d/solids';
-import { FH, OX, OZ, S } from '@/lib/casa3d/units';
+import { FH } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
 import { Solids } from './Solids';
 
@@ -19,12 +19,7 @@ const LAYERS = [
   { y: gw.h, extrude: { depth: FH - 0.01 - gw.h, bevelEnabled: false }, notched: false },
 ];
 
-/** Esquinas del terreno (px del plano) a partir de su centro y lado en metros. */
 const half = GROUND.size / 2;
-const GROUND_RECT = [
-  OX + (GROUND.position[0] - half) * S, OZ + (GROUND.position[2] - half) * S,
-  OX + (GROUND.position[0] + half) * S, OZ + (GROUND.position[2] + half) * S,
-] as const;
 
 /** Terreno exterior a la cota de la calle (con el hueco de la parcela), planta baja (apartamento) con su puerta y ventana, y brújula. */
 export const Building = memo(function Building() {

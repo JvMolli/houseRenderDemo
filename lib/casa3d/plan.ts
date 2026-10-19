@@ -3,7 +3,7 @@
  * Los números coinciden 1:1 con casa-3d.html. Salvo que se indique lo
  * contrario, x/z van en px del plano (ver units.ts) y las alturas en metros.
  */
-import { HT, X, Z, type Px, type Vec3 } from './units';
+import { HT, OX, OZ, S, X, Z, type Px, type Vec3 } from './units';
 
 export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
@@ -54,6 +54,12 @@ export const FP_BOUNDS: Rect = [
 
 /** Terreno: plano de 44 x 44 m (metros). */
 export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3 };
+
+/** Esquinas del terreno en px del plano (x1, z1, x2, z2). */
+export const GROUND_RECT: Rect = [
+  OX + (GROUND.position[0] - GROUND.size / 2) * S, OZ + (GROUND.position[2] - GROUND.size / 2) * S,
+  OX + (GROUND.position[0] + GROUND.size / 2) * S, OZ + (GROUND.position[2] + GROUND.size / 2) * S,
+];
 
 /**
  * Puerta de la planta baja (un apartamento, no un garaje) en la fachada SO,

@@ -18,6 +18,7 @@ export default function Casa3D() {
   const [season, setSeason] = useState<Season>('equinoccio');
   const [low, setLow] = useState(false);
   const [lights, setLights] = useState(false);
+  const [game, setGame] = useState(false);
   const [view, setView] = useState<ViewRequest>({ index: 0, seq: 0 });
   const [photoId, setPhotoId] = useState<string | null>(null);
   const photoSpots = useRef(new Map<string, HTMLElement>());
@@ -27,7 +28,7 @@ export default function Casa3D() {
   return (
     <>
       <div className={styles.wrap}>
-        <Viewer sun={sun} low={low} lights={lights} view={view} photoSpots={photoSpots} />
+        <Viewer sun={sun} low={low} lights={lights} game={game} view={view} photoSpots={photoSpots} />
         <PhotoButtons spots={photoSpots} onOpen={setPhotoId} />
       </div>
       <Controls
@@ -35,10 +36,12 @@ export default function Casa3D() {
         season={season}
         low={low}
         lights={lights}
+        game={game}
         sun={sun}
         onView={index => setView(v => ({ index, seq: v.seq + 1 }))}
         onToggleWalls={() => setLow(l => !l)}
         onToggleLights={() => setLights(l => !l)}
+        onToggleGame={() => setGame(g => !g)}
         onHour={setHour}
         onSeason={setSeason}
       />

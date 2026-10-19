@@ -44,6 +44,7 @@ export function createPersonGeometries() {
     head: new THREE.SphereGeometry(0.11, 16, 12).translate(0, 0.1, 0),
     hair: new THREE.SphereGeometry(0.118, 16, 12).scale(1, 0.85, 1).translate(-0.02, 0.125, 0),
     longHair: cap(0.085, 0.12).scale(1, 1, 1.3).translate(-0.09, 0.01, 0),
+    beard: new THREE.SphereGeometry(0.075, 12, 10).scale(0.75, 0.85, 1.15).translate(0.06, 0.03, 0),
     upperArm: hang(0.05, BODY.upperArm),
     forearm: hang(0.04, BODY.forearm),
     thigh: hang(0.075, BODY.thigh),

@@ -157,22 +157,27 @@ export interface Outfit {
   skin: number; hair: number; top: number; bottom: number; shoes: number;
   legs: 'bare' | 'shorts' | 'trousers';
   longHair?: boolean;
+  /** Barba (mismo color que el pelo). */
+  beard?: boolean;
 }
 
-/** Tumbonas en el césped entre la piscina y la terraza (centro en el boceto; metros). */
-export const LOUNGERS = { at: [[525, 323], [610, 323]] as readonly SPt[], length: 1.9, width: 0.65 };
+/**
+ * Tumbonas en el césped entre la piscina y la terraza (centro en el boceto;
+ * metros), a más de 1 m de la valla en diagonal.
+ */
+export const LOUNGERS = { at: [[600, 300], [680, 300]] as readonly SPt[], length: 1.9, width: 0.65 };
 /** Terraza: mesita redonda con dos sillas enfrentadas (centros en el boceto). */
 export const TERRACE_SET = { table: [715, 460] as SPt, chairs: [[715, 430], [715, 492]] as readonly SPt[] };
 /** Persona en la piscina: da vueltas alrededor de su centro. */
 export const SWIMMER: SPt = [(POOL.inner[0] + POOL.inner[2]) / 2, (POOL.inner[1] + POOL.inner[3]) / 2];
 
-/** Ropa: chico de la barbacoa, dos chicas al sol, quien nada y los dos de la terraza (guest1, canoso). */
+/** Ropa: chico de la barbacoa, dos chicas al sol, quien nada y los dos de la terraza (guest1: hombre de pelo blanco con barba). */
 export const OUTFITS: Record<'griller' | 'sunbather1' | 'sunbather2' | 'swimmer' | 'guest1' | 'guest2', Outfit> = {
   griller: { skin: 0xc58b62, hair: 0x2e221b, top: 0x3b6ea5, bottom: 0xd2c19f, shoes: 0x2b2b2b, legs: 'shorts' },
   sunbather1: { skin: 0xe9b893, hair: 0xcfa760, top: 0xe0605a, bottom: 0xe0605a, shoes: 0xe9b893, legs: 'bare', longHair: true },
   sunbather2: { skin: 0x8a5a3c, hair: 0x15120f, top: 0x2a9d8f, bottom: 0x2a9d8f, shoes: 0x8a5a3c, legs: 'bare', longHair: true },
   swimmer: { skin: 0xe2ad86, hair: 0x5a3b26, top: 0x1f3b73, bottom: 0x1f3b73, shoes: 0xe2ad86, legs: 'bare' },
-  guest1: { skin: 0xe9b893, hair: 0xc9c7c2, top: 0xf2efe8, bottom: 0x2c3a55, shoes: 0x6b4a32, legs: 'trousers' },
+  guest1: { skin: 0xe9b893, hair: 0xf4f3ef, top: 0xf2efe8, bottom: 0x2c3a55, shoes: 0x6b4a32, legs: 'trousers', beard: true },
   guest2: { skin: 0xc58b62, hair: 0x2e221b, top: 0xe8c547, bottom: 0x3a3f46, shoes: 0x2b2b2b, legs: 'trousers', longHair: true },
 };
 

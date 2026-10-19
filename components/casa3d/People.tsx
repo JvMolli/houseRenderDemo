@@ -44,6 +44,7 @@ function Person({ spec, g, mat }: PersonProps) {
             {mesh('head', o.skin)}
             {mesh('hair', o.hair)}
             {o.longHair && mesh('longHair', o.hair)}
+            {o.beard && mesh('beard', o.hair)}
           </group>
           {([-1, 1] as const).map(s => {
             const sideName = s > 0 ? 'R' : 'L';

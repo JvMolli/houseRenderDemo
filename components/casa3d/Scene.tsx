@@ -9,6 +9,7 @@ import { Bathroom } from './Bathroom';
 import { Bedrooms } from './Bedrooms';
 import { Building } from './Building';
 import { Floors } from './Floors';
+import { GameMode } from './GameMode';
 import { HouseLights } from './HouseLights';
 import { Kitchen } from './Kitchen';
 import { Living } from './Living';
@@ -29,6 +30,8 @@ export interface SceneProps {
   sun: SunState;
   low: boolean;
   lights: boolean;
+  /** Modo videojuego (texturas con relieve, cielo, reflejos y posprocesado). */
+  game: boolean;
   view: ViewRequest;
   /** Botones de las fotos, que se colocan sobre el lienzo. */
   photoSpots: PhotoSpotRefs;
@@ -48,14 +51,21 @@ function CameraRig({ view }: { view: ViewRequest }) {
   return null;
 }
 
-export function Scene({ sun, low, lights, view, photoSpots }: SceneProps) {
+export function Scene({ sun, low, lights, game, view, photoSpots }: SceneProps) {
+  // Modo videojuego: de noche la luz ambiente es la de la luna, azulada.
+  const skyFill = useMemo(() => new Color().setRGB(...lerpHex(0x7f97c9, 0xffffff, sun.kd), SRGBColorSpace), [sun.kd]);
   const background = useMemo(() => new Color().setRGB(...lerpHex(SKY_NIGHT, SKY_DAY, sun.kd), SRGBColorSpace), [sun.kd]);
 
   return (
     <MaterialsProvider>
       <primitive attach="background" object={background} />
-      <hemisphereLight args={[0xffffff, 0xd9c7a8]} intensity={lightIntensities(sun).hemi} />
-      <Sun sun={sun} />
+      <hemisphereLight
+        color={game ? skyFill : 0xffffff}
+        groundColor={0xd9c7a8}
+        intensity={lightIntensities(sun).hemi * (game ? 1.5 - 0.75 * sun.kd : 1)}
+      />
+      <Sun sun={sun} ball={!game} gain={game ? 0.7 : 1} softness={game ? 3 : 1} />
+      <GameMode on={game} sun={sun} />
       <OrbitControls makeDefault enableDamping maxPolarAngle={Math.PI / 2 - 0.02} maxDistance={40} />
       <CameraRig view={view} />
       <PhotoAnchors spots={photoSpots} />
