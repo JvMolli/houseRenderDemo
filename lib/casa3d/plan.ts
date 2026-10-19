@@ -73,21 +73,13 @@ export const GROUND_DOOR_BOXES: readonly MBox[] = (() => {
 })();
 
 /**
- * Ventanita de la planta baja en la fachada SO, centrada bajo la ventana del
- * salón. La planta baja es maciza: cristal tintado sobre la fachada y marco.
+ * Ventana de la planta baja en la fachada SO: igual que la del salón, que
+ * queda justo encima (mismo hueco en px; alféizar y dintel en metros sobre la
+ * planta baja). Se abre en un muro del mismo grosor que el del piso.
  */
-export const GROUND_WINDOW = { center: (Z(268) + Z(552)) / 2, width: 1.0, sill: 1.3, head: 2.0 };
-
-export const GROUND_WINDOW_BOXES: readonly MBox[] = (() => {
-  const { center: c, width: w, sill: s, head: h } = GROUND_WINDOW, f = 0.05;
-  return [
-    [0.03, h - s, w, X(45) - 0.03, s, c - w / 2, 'tinted'],
-    [0.07, f, w + 2 * f, X(45) - 0.07, s - f, c - w / 2 - f, 'black'],
-    [0.07, f, w + 2 * f, X(45) - 0.07, h, c - w / 2 - f, 'black'],
-    [0.07, h - s, f, X(45) - 0.07, s, c - w / 2 - f, 'black'],
-    [0.07, h - s, f, X(45) - 0.07, s, c + w / 2, 'black'],
-  ];
-})();
+export const GROUND_WINDOW: Opening = { a: 268, b: 552, s: 0.8, h: 2.3, w: true };
+/** Grosor del muro de la fachada SO (px), como el del piso. */
+export const GROUND_SO_WALL = [45, 78] as const;
 
 /** Brújula: arriba del plano = NO (azimut 315°), ventanas del salón al SO. */
 export const COMPASS = { position: [X(45) - 1.3, 0.02, Z(52) + 1.2] as Vec3, rotationY: -Math.PI / 4, size: 1.8 };

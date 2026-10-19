@@ -139,6 +139,14 @@ export const BOUNDARY_RUNS: readonly { points: readonly SPt[]; level: number }[]
  */
 export const GATE = { from: [815, 20] as SPt, to: [1105, 20] as SPt, thickness: 0.06, pillar: 0.3 };
 
+/* ---- Barbacoa -------------------------------------------------------------------- */
+
+/**
+ * Barbacoa de gas con carro en la franja, justo enfrente de la ventana de la
+ * planta baja y de espaldas a la casa. Metros; `gap`: de su trasera a la fachada.
+ */
+export const BBQ = { gap: 1.0, width: 1.0, depth: 0.55, body: 0.8, top: 0.12, lid: 0.25, shelf: 0.3 };
+
 /* ---- Coche ---------------------------------------------------------------------- */
 
 /**

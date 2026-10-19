@@ -3,13 +3,21 @@
  * Para cambiar la distribución se edita plan.ts, no esto.
  */
 import {
-  ARMCHAIRS, BAR, BATHROOM, BATHROOM_CYLS, BEDS, CHAMFER_WALL, CLOSETS, GROUND_DOOR_BOXES, GROUND_WINDOW_BOXES,
+  ARMCHAIRS, BAR, BATHROOM, BATHROOM_CYLS, BEDS, CHAMFER_WALL, CLOSETS, GROUND_DOOR_BOXES, GROUND_SO_WALL, GROUND_WINDOW,
   KITCHEN, KITCHEN_CYLS, LIVING, STOOLS, WALL_PIECES, WALLS,
 } from './plan';
 import { armchair, bed, chamferWall, closet, cyl, mbox, pbox, stool, wallBoxes, type Solid } from './shapes';
 
-/** Puerta y ventanita de la planta baja con sus marcos (en la escena, no en el piso). */
-export const GROUND_FLOOR_SOLIDS: readonly Solid[] = [...GROUND_DOOR_BOXES, ...GROUND_WINDOW_BOXES].map(mbox);
+const [so1, so2] = GROUND_SO_WALL, gw = GROUND_WINDOW;
+
+/** Puerta y ventana de la planta baja (en la escena, no en el piso). */
+export const GROUND_FLOOR_SOLIDS: readonly Solid[] = [
+  ...GROUND_DOOR_BOXES.map(mbox),
+  // Carpintería y vidrio como las ventanas del piso (el muro ya lo pone el bloque de la planta baja)
+  ...wallBoxes(['v', so1, so2, gw.a, gw.b, [gw]]).filter(b => b[6] !== 'wall').map(pbox),
+  // Fondo del hueco: interior en penumbra
+  pbox([so2 - 2, gw.a, so2, gw.b, gw.s, gw.h, 'door']),
+];
 
 /** Grupo de muros: baja a 0,4 de altura con "Bajar paredes". */
 export const WALL_SOLIDS: readonly Solid[] = [

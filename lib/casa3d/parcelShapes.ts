@@ -3,11 +3,11 @@
  * px del plano del piso y a sólidos en metros.
  */
 import {
-  BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
+  BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
   OUTCROP, OUTDOOR_STAIR, OUTLINE, POOL, PUMP, STAIR, STRIP, TERRACE, TERRACE_STEPS, type SPt,
 } from './parcel';
-import type { MaterialKey, Pt, Rect } from './plan';
-import { pbox, type BoxSolid, type Solid } from './shapes';
+import { GROUND_SO_WALL, GROUND_WINDOW, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
+import { mbox, pbox, type BoxSolid, type Solid } from './shapes';
 import { FH, OX, OZ, S, X, Z, type Vec3 } from './units';
 
 /** Polígono del boceto -> px del plano. */
@@ -214,6 +214,24 @@ function gate(): Solid[] {
   ];
 }
 
+/** Barbacoa de gas con carro: armario, encimera, tapa con tirador, baldas laterales y mandos. */
+function barbecue(): Solid[] {
+  const { gap, width: w, depth: d, body, top, lid, shelf } = BBQ;
+  const z = (Z(GROUND_WINDOW.a) + Z(GROUND_WINDOW.b)) / 2 - w / 2; // borde de la barbacoa, centrada en la ventana
+  const xf = X(GROUND_SO_WALL[0]) - gap - d; // frente (lado del cocinero)
+  const y0 = LEVELS.garden, yTop = y0 + body + top;
+  const boxes: MBox[] = [
+    [d, body, w, xf, y0, z, 'graphite'],
+    [d, top, w, xf, y0 + body, z, 'black'],
+    [d - 0.05, lid, w - 0.04, xf + 0.05, yTop, z + 0.02, 'steel'],
+    [0.03, 0.03, w * 0.7, xf + 0.01, yTop + lid - 0.07, z + w * 0.15, 'steel'],
+    [d - 0.05, 0.03, shelf, xf + 0.025, yTop - 0.06, z - shelf, 'steel'],
+    [d - 0.05, 0.03, shelf, xf + 0.025, yTop - 0.06, z + w, 'steel'],
+    ...[0.2, 0.45, 0.7].map((t): MBox => [0.03, 0.05, 0.05, xf - 0.03, y0 + body - 0.1, z + w * t, 'black']),
+  ];
+  return boxes.map(mbox);
+}
+
 /** Sólidos estáticos de la parcela (se fusionan por material). */
 export const PARCEL_SOLIDS: readonly Solid[] = [
   ...boundarySolids(),
@@ -226,6 +244,7 @@ export const PARCEL_SOLIDS: readonly Solid[] = [
   boxOn(OUTCROP.inner, LEVELS.outside, LEVELS.outside + GENERIC_HEIGHT + 0.05, 'white'),
   ...hatchWall(),
   ...gate(),
+  ...barbecue(),
 ];
 
 /** Centro (m) y tamaño de un rectángulo del boceto, para planos sueltos (agua, barra rayada). */
