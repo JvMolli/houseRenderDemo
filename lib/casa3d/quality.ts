@@ -24,6 +24,7 @@ const SURFACE: Partial<Record<Key, { roughness: number }>> = {
   floor: { roughness: 0.3 }, stone: { roughness: 0.32 }, white: { roughness: 0.35 }, tub: { roughness: 0.15 },
   steel: { roughness: 0.25 }, mirror: { roughness: 0.03 }, glass: { roughness: 0.03 }, carBody: { roughness: 0.12 },
   carRoof: { roughness: 0.12 }, tinted: { roughness: 0.03 }, water: { roughness: 0.02 }, graphite: { roughness: 0.35 },
+  harleyBlue: { roughness: 0.12 }, chrome: { roughness: 0.08 },
 };
 /**
  * Materiales que reflejan el cielo y cuánto. Solo estos: como entorno global
@@ -31,7 +32,7 @@ const SURFACE: Partial<Record<Key, { roughness: number }>> = {
  * valores pequeños.
  */
 const REFLECT: Partial<Record<Key, number>> = {
-  carBody: 0.2, carRoof: 0.2, water: 0.25, glass: 0.2, tinted: 0.25, steel: 0.12, mirror: 0.1, tub: 0.05, graphite: 0.06, garageDoor: 0.05,
+  carBody: 0.2, carRoof: 0.2, harleyBlue: 0.2, chrome: 0.35, water: 0.25, glass: 0.2, tinted: 0.25, steel: 0.12, mirror: 0.1, tub: 0.05, graphite: 0.06, garageDoor: 0.05,
 };
 /** Emisivos (MeshBasic): se suben por encima de 1 para que el bloom los haga brillar. */
 const GLOW: Partial<Record<Key, number>> = { led: 5, screen: 1.6, ambilight: 3, carLightFront: 2.5, carLightRear: 3.5 };

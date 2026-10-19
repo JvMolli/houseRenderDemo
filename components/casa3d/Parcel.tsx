@@ -5,6 +5,7 @@ import {
   LANDING, OUTLINE_PLAN, PARCEL_SOLIDS, PLATFORMS, sketchRect, sketchRectCenter, STEPS, type Slab,
 } from '@/lib/casa3d/parcelShapes';
 import { Car } from './Car';
+import { Motorcycle } from './Motorcycle';
 import { useMaterials } from './MaterialsContext';
 import { People } from './People';
 import { Solids } from './Solids';
@@ -58,6 +59,7 @@ export const Parcel = memo(function Parcel() {
 
       <Solids items={PARCEL_SOLIDS} />
       <Car />
+      <Motorcycle />
       <People />
     </>
   );

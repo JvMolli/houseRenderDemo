@@ -181,6 +181,14 @@ export const OUTFITS: Record<'griller' | 'sunbather1' | 'sunbather2' | 'swimmer'
   guest2: { skin: 0xc58b62, hair: 0x2e221b, top: 0xe8c547, bottom: 0x3a3f46, shoes: 0x2b2b2b, legs: 'trousers', longHair: true },
 };
 
+/* ---- Moto ------------------------------------------------------------------------ */
+
+/**
+ * Harley-Davidson azul aparcada junto al costado izquierdo del coche, mirando
+ * también a la casa y apoyada en la pata de cabra (`lean`, rad).
+ */
+export const MOTORCYCLE = { center: [945, 200] as SPt, lean: 0.12 };
+
 /* ---- Coche ---------------------------------------------------------------------- */
 
 /**

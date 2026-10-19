@@ -17,7 +17,7 @@ const PAVER = 2.4;
 export type ExtraMaterialKey =
   | 'floor' | 'tile' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
   | 'grass' | 'terracePaving' | 'carsPaving' | 'water' | 'hatch'
-  | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear';
+  | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear' | 'harleyBlue' | 'chrome';
 export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
 
 /** Crea todos los materiales. Llamar solo en cliente; liberar con disposeMaterials(). */
@@ -97,6 +97,9 @@ export function createMaterials(anisotropy: number): Materials {
     carRoof: MT({ color: CAR.roof, roughness: 0.25, metalness: 0.3 }),
     carLightFront: basic({ color: 0xeef3f5 }),
     carLightRear: basic({ color: 0xa3121c }),
+    // Moto: azul metalizado y cromados.
+    harleyBlue: MT({ color: 0x1d4fa3, roughness: 0.2, metalness: 0.45 }),
+    chrome: MT({ color: 0xd8dade, roughness: 0.2, metalness: 0.6 }),
   };
 }
 
