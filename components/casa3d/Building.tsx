@@ -2,6 +2,7 @@ import { ShapeGeometry } from 'three';
 import { memo, useEffect, useMemo } from 'react';
 import { planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
 import { COMPASS, FP, GROUND } from '@/lib/casa3d/plan';
+import { LEVELS } from '@/lib/casa3d/parcel';
 import { OUTLINE_PLAN } from '@/lib/casa3d/parcelShapes';
 import { GROUND_DOOR_SOLIDS } from '@/lib/casa3d/solids';
 import { FH, OX, OZ, S } from '@/lib/casa3d/units';
@@ -17,7 +18,7 @@ const GROUND_RECT = [
   OX + (GROUND.position[0] + half) * S, OZ + (GROUND.position[2] + half) * S,
 ] as const;
 
-/** Terreno exterior (con el hueco de la parcela), planta baja (apartamento) con su puerta y brújula. */
+/** Terreno exterior a la cota de la calle (con el hueco de la parcela), planta baja (apartamento) con su puerta y brújula. */
 export const Building = memo(function Building() {
   const m = useMaterials();
   const footprint = useMemo(() => planShape(FP), []);
@@ -30,7 +31,7 @@ export const Building = memo(function Building() {
 
   return (
     <>
-      <mesh geometry={ground} material={m.ground} rotation-x={-Math.PI / 2} position-y={GROUND.position[1]} receiveShadow />
+      <mesh geometry={ground} material={m.ground} rotation-x={-Math.PI / 2} position-y={LEVELS.outside + GROUND.position[1]} receiveShadow />
       <mesh material={m.facade} rotation-x={-Math.PI / 2} castShadow receiveShadow>
         <extrudeGeometry args={[footprint, EXTRUDE]} />
       </mesh>

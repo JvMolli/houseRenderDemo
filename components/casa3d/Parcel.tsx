@@ -2,8 +2,9 @@ import { memo, useMemo } from 'react';
 import { planShape, rectPoints } from '@/lib/casa3d/geometry';
 import { HATCH, LEVELS, POOL } from '@/lib/casa3d/parcel';
 import {
-  OUTLINE_PLAN, PARCEL_SOLIDS, PLATFORMS, sketchRect, sketchRectCenter, STEPS, type Slab,
+  LANDING, OUTLINE_PLAN, PARCEL_SOLIDS, PLATFORMS, sketchRect, sketchRectCenter, STEPS, type Slab,
 } from '@/lib/casa3d/parcelShapes';
+import { Car } from './Car';
 import { useMaterials } from './MaterialsContext';
 import { Solids } from './Solids';
 
@@ -25,9 +26,10 @@ function SlabMesh({ slab }: { slab: Slab }) {
 }
 
 /**
- * Parcela según el boceto: jardín y piscina a -1 m; terraza, coches, franja y
- * escalera a cota 0 con sus escalones; cerramiento, escalera exterior,
- * cristalera, depuradora y los elementos sin aclarar.
+ * Parcela según el boceto: jardín, piscina y franja de césped a la cota de la
+ * planta baja; terraza y coches 1 m más arriba con sus escalones; cerramiento
+ * con portón, escalera exterior, cristalera, depuradora, el coche y los
+ * elementos sin aclarar.
  */
 export const Parcel = memo(function Parcel() {
   const m = useMaterials();
@@ -40,7 +42,7 @@ export const Parcel = memo(function Parcel() {
       <mesh material={m.grass} rotation-x={-Math.PI / 2} position-y={LEVELS.garden} receiveShadow>
         <shapeGeometry args={[garden]} />
       </mesh>
-      {[...PLATFORMS, ...STEPS].map((s, i) => <SlabMesh key={i} slab={s} />)}
+      {[...PLATFORMS, ...STEPS, LANDING].map((s, i) => <SlabMesh key={i} slab={s} />)}
 
       <mesh material={m.white} rotation-x={-Math.PI / 2} position-y={LEVELS.garden} castShadow receiveShadow>
         <extrudeGeometry args={[coping, copingExtrude]} />
@@ -54,6 +56,7 @@ export const Parcel = memo(function Parcel() {
       </mesh>
 
       <Solids items={PARCEL_SOLIDS} />
+      <Car />
     </>
   );
 });

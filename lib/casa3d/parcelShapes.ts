@@ -3,12 +3,12 @@
  * px del plano del piso y a sólidos en metros.
  */
 import {
-  BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, fromSketch, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
-  OUTCROP, OUTDOOR_STAIR, OUTLINE, POOL, PUMP, SKETCH_HOUSE, STAIR, STRIP, TERRACE, TERRACE_STEPS, type SPt,
+  BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
+  OUTCROP, OUTDOOR_STAIR, OUTLINE, POOL, PUMP, STAIR, STRIP, TERRACE, TERRACE_STEPS, type SPt,
 } from './parcel';
 import type { MaterialKey, Pt, Rect } from './plan';
 import { pbox, type BoxSolid, type Solid } from './shapes';
-import { FH, X, Z, type Vec3 } from './units';
+import { FH, OX, OZ, S, X, Z, type Vec3 } from './units';
 
 /** Polígono del boceto -> px del plano. */
 export const sketchPoly = (pts: readonly SPt[]): Pt[] => pts.map(fromSketch);
@@ -18,8 +18,6 @@ export function sketchRect([sx1, sy1, sx2, sy2]: Rect): Rect {
   const [ax, az] = fromSketch([sx1, sy1]), [bx, bz] = fromSketch([sx2, sy2]);
   return [Math.min(ax, bx), Math.min(az, bz), Math.max(ax, bx), Math.max(az, bz)];
 }
-
-const rectPoly = ([x1, z1, x2, z2]: Rect): SPt[] => [[x1, z1], [x2, z1], [x2, z2], [x1, z2]];
 
 /** Arco en el boceto (y hacia abajo): ángulos en grados, extremos incluidos. */
 export function sketchArc([cx, cy]: SPt, r: number, from: number, to: number, n = 12): SPt[] {
@@ -41,7 +39,7 @@ export function insidePolygon([x, z]: Pt, poly: readonly Pt[]): boolean {
 
 /* ---- Suelos ------------------------------------------------------------------- */
 
-export type ParcelSurface = 'terracePaving' | 'carsPaving' | 'stripPaving';
+export type ParcelSurface = 'terracePaving' | 'carsPaving' | 'facade';
 
 /** Prisma de suelo: contorno en px del plano, desde el jardín hasta `top` (m). */
 export interface Slab {
@@ -52,7 +50,7 @@ export interface Slab {
 
 export const OUTLINE_PLAN: Pt[] = sketchPoly(OUTLINE);
 
-/** Zonas a cota 0 sobre el jardín. */
+/** Zonas elevadas sobre el jardín: terraza y coches. */
 export const PLATFORMS: Slab[] = [
   { points: sketchPoly(TERRACE), top: LEVELS.raised, mat: 'terracePaving' },
   {
@@ -62,18 +60,9 @@ export const PLATFORMS: Slab[] = [
     ]),
     top: LEVELS.raised, mat: 'carsPaving',
   },
-  { points: sketchPoly(rectPoly(STRIP)), top: LEVELS.raised, mat: 'stripPaving' },
-  { points: sketchPoly(rectPoly(STAIR)), top: LEVELS.raised, mat: 'stripPaving' },
-  { points: sketchPoly(rectPoly(SKETCH_HOUSE)), top: LEVELS.raised, mat: 'stripPaving' },
 ];
 
 const stepTop = (k: number, n: number) => LEVELS.garden + (k + 1) * (LEVELS.raised - LEVELS.garden) / (n + 1);
-
-/** x del lindero en diagonal (de OUTLINE[5] a OUTLINE[0]) a la altura sy. */
-function diagonalX(sy: number) {
-  const [ax, ay] = OUTLINE[5], [bx, by] = OUTLINE[0];
-  return ax + (sy - ay) * (bx - ax) / (by - ay);
-}
 
 /** Peldaños entre terraza y piscina y junto a los coches (25 cm cada uno). */
 export const STEPS: Slab[] = [
@@ -136,23 +125,43 @@ function boundarySolids(): Solid[] {
   return out;
 }
 
-/** Escalera exterior: peldaños macizos desde la franja hasta un rellano frente a la puerta, a cota FH. */
-export function outdoorStair(): { steps: BoxSolid[]; landing: BoxSolid; tread: number; rise: number } {
-  const [sx1, sz1, , sz2] = sketchRect(STAIR), z1 = Z(sz1), z2 = Z(sz2);
+/** Cara interior (Z, m) del muro del lindero en diagonal a la abscisa X (m), junto a la fachada SE. */
+function diagonalWallInnerZ(x: number) {
+  const [ax, az] = m(fromSketch(DIAGONAL.to)), [bx, bz] = m(fromSketch(DIAGONAL.from));
+  const dx = bx - ax, dz = bz - az;
+  return az + (x - ax) * dz / dx - BOUNDARY.thickness * Math.hypot(dx, dz) / Math.abs(dx);
+}
+
+/**
+ * Escalera exterior: peldaños macizos desde la franja (cota del jardín) hasta un
+ * rellano frente a la puerta, a cota FH. Donde el muro en diagonal se acerca a
+ * la fachada, peldaños y rellano se recortan hasta su cara interior.
+ */
+export function outdoorStair(): { steps: BoxSolid[]; landing: Slab; tread: number; rise: number } {
+  const [sx1, sz1, , sz2] = sketchRect(STAIR), z1 = Z(sz1);
+  const outer = (x: number) => Math.min(Z(sz2), diagonalWallInnerZ(x) - 0.02);
   const [d1, d2] = OUTDOOR_STAIR.entranceDoor, mg = OUTDOOR_STAIR.landingMargin;
   const landing0 = X(d1) - mg, landing1 = X(d2) + mg;
   const start = X(sx1); // borde de la franja
   const risers = Math.ceil(FH / OUTDOOR_STAIR.maxRiser - 1e-9), rise = FH / risers, treads = risers - 1;
   const tread = (landing0 - start) / treads;
-  const box = (xa: number, xb: number, top: number): BoxSolid => ({
-    kind: 'box', size: [xb - xa, top, z2 - z1], position: [(xa + xb) / 2, top / 2, (z1 + z2) / 2], mat: 'facade',
-  });
+  const step = (xa: number, xb: number, top: number): BoxSolid => {
+    const z2 = outer(xb);
+    return { kind: 'box', size: [xb - xa, top, z2 - z1], position: [(xa + xb) / 2, top / 2, (z1 + z2) / 2], mat: 'facade' };
+  };
+  const px = (x: number, z: number): Pt => [OX + x * S, OZ + z * S];
   return {
-    steps: Array.from({ length: treads }, (_, i) => box(start + i * tread, start + (i + 1) * tread, (i + 1) * rise)),
-    landing: box(landing0, landing1, FH),
+    steps: Array.from({ length: treads }, (_, i) => step(start + i * tread, start + (i + 1) * tread, (i + 1) * rise)),
+    landing: {
+      points: [px(landing0, z1), px(landing1, z1), px(landing1, outer(landing1)), px(landing0, outer(landing0))],
+      top: FH, mat: 'facade',
+    },
     tread, rise,
   };
 }
+
+/** Rellano de la escalera exterior (prisma, porque su borde sigue el muro). */
+export const LANDING: Slab = outdoorStair().landing;
 
 /** Vaso de la piscina: paredes de 10 cm por fuera de la lámina y fondo. */
 function poolBasin(): Solid[] {
@@ -179,26 +188,44 @@ function glassRail(): Solid[] {
 
 const boxOn = (r: Rect, y0: number, y1: number, mat: MaterialKey) => pbox([...sketchRect(r), y0, y1, mat]);
 
-/** Marco oscuro de la barra rayada (a ras de suelo). */
-function hatchFrame(): Solid[] {
+/** Barra rayada: muro del desnivel entre coches y franja (2 mm por debajo de los coches) y su marco oscuro encima. */
+function hatchWall(): Solid[] {
   const [x1, z1, x2, z2] = sketchRect(HATCH), w = 0.02 * 119, y0 = LEVELS.raised, y1 = y0 + 0.006;
-  return ([
-    [x1, z1, x2, z1 + w], [x1, z2 - w, x2, z2], [x1, z1, x1 + w, z2], [x2 - w, z1, x2, z2],
-  ] as const).map(([a, b, c, d]) => pbox([a, b, c, d, y0, y1, 'black']));
+  return [
+    pbox([x1, z1, x2, z2, LEVELS.garden, LEVELS.raised - 0.002, 'facade']),
+    ...([
+      [x1, z1, x2, z1 + w], [x1, z2 - w, x2, z2], [x1, z1, x1 + w, z2], [x2 - w, z1, x2, z2],
+    ] as const).map(([a, b, c, d]) => pbox([a, b, c, d, y0, y1, 'black'])),
+  ];
+}
+
+/** Portón en el frente de los coches, por dentro del lindero, con un pilar de obra a cada lado. */
+function gate(): Solid[] {
+  const a = m(fromSketch(GATE.from)), b = m(fromSketch(GATE.to)), L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  let nx = -(b[1] - a[1]) / L, nz = (b[0] - a[0]) / L;
+  const probe: Pt = [((a[0] + b[0]) / 2 + nx * 0.05) * 119 + 78, ((a[1] + b[1]) / 2 + nz * 0.05) * 119 + 68];
+  if (!insidePolygon(probe, OUTLINE_PLAN)) { nx = -nx; nz = -nz; }
+  const t = BOUNDARY.thickness, off: [number, number] = [nx * t / 2, nz * t / 2], p = GATE.pillar;
+  const top = LEVELS.raised + BOUNDARY.wall + BOUNDARY.fence;
+  return [
+    segmentBox(a, b, p, L - p, off, GATE.thickness, LEVELS.raised + 0.03, top, 'garageDoor'),
+    segmentBox(a, b, 0, p, off, p, LEVELS.garden, top + 0.15, 'facade'),
+    segmentBox(a, b, L - p, L, off, p, LEVELS.garden, top + 0.15, 'facade'),
+  ];
 }
 
 /** Sólidos estáticos de la parcela (se fusionan por material). */
 export const PARCEL_SOLIDS: readonly Solid[] = [
   ...boundarySolids(),
   ...outdoorStair().steps,
-  outdoorStair().landing,
   ...poolBasin(),
   ...glassRail(),
   boxOn(PUMP.rect, LEVELS.garden, LEVELS.garden + PUMP.height, 'white'),
-  ...MARKS.map(r => boxOn(r, LEVELS.raised, LEVELS.raised + GENERIC_HEIGHT, 'white')),
-  boxOn(OUTCROP.outer, LEVELS.raised, LEVELS.raised + GENERIC_HEIGHT, 'white'),
-  boxOn(OUTCROP.inner, LEVELS.raised, LEVELS.raised + GENERIC_HEIGHT + 0.05, 'white'),
-  ...hatchFrame(),
+  ...MARKS.map(({ rect, level }) => boxOn(rect, LEVELS[level], LEVELS[level] + GENERIC_HEIGHT, 'white')),
+  boxOn(OUTCROP.outer, LEVELS.outside, LEVELS.outside + GENERIC_HEIGHT, 'white'),
+  boxOn(OUTCROP.inner, LEVELS.outside, LEVELS.outside + GENERIC_HEIGHT + 0.05, 'white'),
+  ...hatchWall(),
+  ...gate(),
 ];
 
 /** Centro (m) y tamaño de un rectángulo del boceto, para planos sueltos (agua, barra rayada). */

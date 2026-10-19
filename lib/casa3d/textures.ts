@@ -167,14 +167,18 @@ export function porcelain(rnd: Rng) {
   return c;
 }
 
-/** Césped: verde apagado con briznas cortas. */
+/**
+ * Césped artificial: verde vivo y uniforme, fibras finas y dos franjas de
+ * rollo por canvas con un tono apenas distinto.
+ */
 export function grass(rnd: Rng) {
-  const N = 256, c = noise(rnd, 112, 138, 78, 26, N), x = ctx(c);
+  const N = 256, c = noise(rnd, 88, 148, 60, 12, N), x = ctx(c);
+  x.fillStyle = 'rgba(255,255,255,0.05)'; x.fillRect(0, 0, N / 2, N);
   x.lineWidth = 1;
-  for (let i = 0; i < 1400; i++) {
+  for (let i = 0; i < 2600; i++) {
     const g = rnd(), px = rnd() * N, py = rnd() * N;
-    x.strokeStyle = 'rgba(' + (60 + g * 60 | 0) + ',' + (100 + g * 60 | 0) + ',' + (40 + g * 30 | 0) + ',0.35)';
-    x.beginPath(); x.moveTo(px, py); x.lineTo(px + (rnd() - 0.5) * 3, py - 2 - rnd() * 4); x.stroke();
+    x.strokeStyle = 'rgba(' + (70 + g * 40 | 0) + ',' + (130 + g * 50 | 0) + ',' + (45 + g * 25 | 0) + ',0.3)';
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + (rnd() - 0.5) * 1.5, py - 1.5 - rnd() * 2.5); x.stroke();
   }
   return c;
 }

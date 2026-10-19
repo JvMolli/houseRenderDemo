@@ -59,7 +59,7 @@ export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3 };
  * Puerta de la planta baja (un apartamento, no un garaje) en la fachada SO,
  * centrada bajo la ventana de la barra/cocina. Medidas en metros.
  */
-export const GROUND_DOOR = { center: (Z(737) + Z(897)) / 2, width: 2.0, height: 2.2 };
+export const GROUND_DOOR = { center: (Z(737) + Z(897)) / 2, width: 2.8, height: 2.2 };
 
 /** Puerta seccional y su marco (metros). */
 export const GROUND_DOOR_BOXES: readonly MBox[] = (() => {

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { BOUNDARY_RUNS, fromSketch, LEVELS, OUTDOOR_STAIR, SKETCH_HOUSE, toSketch } from './parcel';
-import { outdoorStair, PLATFORMS, STEPS } from './parcelShapes';
-import { FP_BOUNDS, GROUND_DOOR, GROUND_DOOR_BOXES } from './plan';
-import { FH, X, Z } from './units';
+import {
+  BOUNDARY_RUNS, CAR, DIAGONAL, fromSketch, GATE, LEVELS, OUTDOOR_STAIR, OUTLINE, PUMP, SKETCH_HOUSE, TERRACE, toSketch,
+} from './parcel';
+import { insidePolygon, OUTLINE_PLAN, outdoorStair, PLATFORMS, sketchRect, STEPS } from './parcelShapes';
+import { FP, FP_BOUNDS, GROUND_DOOR, GROUND_DOOR_BOXES } from './plan';
+import { FH, OX, OZ, S, X } from './units';
 
 describe('boceto de la parcela -> plano del piso', () => {
   it('el rectángulo «Casa» cae sobre la huella, girado 90° (arriba del boceto = SO)', () => {
@@ -22,26 +24,44 @@ describe('boceto de la parcela -> plano del piso', () => {
   });
 });
 
-describe('cerramiento', () => {
-  const segments = BOUNDARY_RUNS.flatMap(r => r.points.slice(1).map((b, i) => [r.points[i], b] as const));
-  const has = (a: readonly number[], b: readonly number[]) =>
-    segments.some(([p, q]) => (p[0] === a[0] && p[1] === a[1] && q[0] === b[0] && q[1] === b[1]) || (p[0] === b[0] && p[1] === b[1] && q[0] === a[0] && q[1] === a[1]));
+describe('contorno', () => {
+  const near = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1]) < 1e-9;
 
-  it('sin muro en la fachada NO de la casa ni en el frente de los coches (entrada)', () => {
-    expect(has([1350, 455], [1350, 765])).toBe(false);
-    expect(has([815, 20], [1105, 20])).toBe(false);
+  it('el lindero en diagonal va de la esquina de la depuradora a la esquina del baño', () => {
+    expect(fromSketch(DIAGONAL.to)[0]).toBeCloseTo(FP[3][0], 9);
+    expect(fromSketch(DIAGONAL.to)[1]).toBeCloseTo(FP[3][1], 9);
+    expect(OUTLINE[0]).toEqual(DIAGONAL.from);
+    expect(OUTLINE.at(-1)).toBe(DIAGONAL.to);
   });
 
-  it('muro 1 m sobre el suelo interior: el jardín por debajo de coches y terraza', () => {
-    expect(LEVELS.raised - LEVELS.garden).toBe(1);
-    expect(BOUNDARY_RUNS.map(r => r.level)).toEqual([LEVELS.garden, LEVELS.raised, LEVELS.raised, LEVELS.garden]);
+  it('terraza triangular, depuradora y coche dentro de la parcela', () => {
+    expect(TERRACE).toHaveLength(3);
+    const inside = (p: readonly [number, number]) => insidePolygon(fromSketch(p), OUTLINE_PLAN);
+    const c = TERRACE.reduce((a, p) => [a[0] + p[0] / 3, a[1] + p[1] / 3], [0, 0]);
+    expect(inside([c[0], c[1]])).toBe(true);
+    const [x1, z1, x2, z2] = sketchRect(PUMP.rect);
+    for (const c of [[x1, z1], [x2, z1], [x2, z2], [x1, z2]] as const) expect(insidePolygon(c, OUTLINE_PLAN)).toBe(true);
+    expect(inside(CAR.center)).toBe(true);
+  });
+
+  it('sin muro en las fachadas ni el chaflán; portón en el frente de los coches', () => {
+    const segs = BOUNDARY_RUNS.flatMap(r => r.points.slice(1).map((b, i) => [r.points[i], b] as const));
+    const has = (a: readonly number[], b: readonly number[]) => segs.some(([p, q]) => (near(p, a) && near(q, b)) || (near(p, b) && near(q, a)));
+    expect(has([1350, 455], [1350, 765])).toBe(false);
+    expect(has(OUTLINE[5], OUTLINE[6])).toBe(false);
+    expect(has(GATE.from, GATE.to)).toBe(false);
+    expect(GATE.from).toEqual([815, 20]);
+    expect(GATE.to).toEqual([1105, 20]);
   });
 });
 
-describe('suelos y escalones', () => {
-  it('plataformas a cota 0 y peldaños de 25 cm entre el jardín y la cota 0', () => {
+describe('cotas', () => {
+  it('terraza y coches 1 m sobre el resto del patio; la planta baja a cota del jardín', () => {
+    expect(LEVELS.garden).toBe(0);
+    expect(LEVELS.raised - LEVELS.garden).toBe(1);
+    expect(LEVELS.outside).toBe(LEVELS.raised);
     expect(PLATFORMS.every(p => p.top === LEVELS.raised)).toBe(true);
-    expect(STEPS.map(s => s.top)).toEqual([-0.75, -0.5, -0.25, -0.75, -0.5, -0.25]);
+    expect(STEPS.map(s => s.top)).toEqual([0.25, 0.5, 0.75, 0.25, 0.5, 0.75]);
   });
 });
 
@@ -49,18 +69,25 @@ describe('escalera exterior', () => {
   const st = outdoorStair();
   const lo = (b: { position: number[]; size: number[] }) => b.position[0] - b.size[0] / 2;
   const hi = (b: { position: number[]; size: number[] }) => b.position[0] + b.size[0] / 2;
+  const landingX = st.landing.points.map(p => (p[0] - OX) / S);
 
   it('arranca en la franja y sube hacia la puerta de entrada', () => {
     expect(lo(st.steps[0])).toBeCloseTo(X(FP_BOUNDS[0]), 9);
     expect(st.steps[0].size[1]).toBeCloseTo(st.rise, 9);
-    expect(hi(st.steps.at(-1)!)).toBeCloseTo(lo(st.landing), 9);
+    expect(hi(st.steps.at(-1)!)).toBeCloseTo(Math.min(...landingX), 9);
   });
 
   it('rellano a la altura del piso, delante de la puerta', () => {
     const [d1, d2] = OUTDOOR_STAIR.entranceDoor;
-    expect(st.landing.size[1]).toBe(FH);
-    expect(lo(st.landing)).toBeLessThan(X(d1));
-    expect(hi(st.landing)).toBeGreaterThan(X(d2));
+    expect(st.landing.top).toBe(FH);
+    expect(Math.min(...landingX)).toBeLessThan(X(d1));
+    expect(Math.max(...landingX)).toBeGreaterThan(X(d2));
+  });
+
+  it('peldaños y rellano no atraviesan el muro del lindero', () => {
+    const inside = (x: number, z: number) => insidePolygon([OX + x * S, OZ + z * S], OUTLINE_PLAN);
+    for (const s of st.steps) expect(inside(hi(s), s.position[2] + s.size[2] / 2)).toBe(true);
+    for (const p of st.landing.points) expect(insidePolygon([p[0] - 0.01, p[1] - 0.01], OUTLINE_PLAN)).toBe(true);
   });
 
   it('tabica dentro del máximo', () => {
@@ -70,10 +97,9 @@ describe('escalera exterior', () => {
 });
 
 describe('puerta de la planta baja', () => {
-  it('centrada bajo la ventana de la barra/cocina de la fachada SO', () => {
-    expect(GROUND_DOOR.center).toBeCloseTo((Z(737) + Z(897)) / 2, 9);
+  it('centrada bajo la ventana de la barra/cocina de la fachada SO, 2,8 m de ancho', () => {
     const [door] = GROUND_DOOR_BOXES;
     expect(door[5] + door[2] / 2).toBeCloseTo(GROUND_DOOR.center, 9);
-    expect(door[2]).toBe(GROUND_DOOR.width);
+    expect(door[2]).toBe(2.8);
   });
 });

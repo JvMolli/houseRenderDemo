@@ -28,18 +28,43 @@ export function toSketch([x, z]: Pt): SPt {
 
 /** Cotas (m) respecto al suelo de la planta baja. */
 export const LEVELS = {
-  /** Casa, franja, coches, terraza, arranque de la escalera y exterior de la parcela. */
-  raised: 0,
-  /** Jardín y piscina: 1 m por debajo de la terraza y los coches. */
-  garden: -1,
+  /** Jardín, piscina, franja (césped artificial), planta baja y arranque de la escalera. */
+  garden: 0,
+  /** Terraza y coches: 1 m por encima del resto del patio. */
+  raised: 1,
+  /** Calle y terreno fuera de la parcela, a la cota de los coches (por ahí entran). */
+  outside: 1,
 };
 
-/** Contorno de la parcela. */
-export const OUTLINE: readonly SPt[] = [[165, 20], [1105, 20], [1105, 335], [1350, 335], [1350, 765], [460, 765]];
+/** Esquinas del chaflán de la casa en el boceto: la del lado NE y la del baño (lado SE). */
+const CHAMFER_NE = toSketch(FP[2]);
+const BATH_CORNER = toSketch(FP[3]);
 
-/* ---- Zonas a cota 0 (el resto de la parcela es jardín) ---------------------- */
+/**
+ * Lindero en diagonal: de la esquina de la depuradora directo a la esquina
+ * exterior del baño (la parcela es más triangular que en el boceto original).
+ */
+export const DIAGONAL = { from: [165, 20] as SPt, to: BATH_CORNER };
 
-export const TERRACE: readonly SPt[] = [[319.4, 410], [765, 410], [765, 765], [460, 765]];
+/** x del lindero en diagonal a la altura sy, e y a la abscisa sx. */
+export function diagonalX(sy: number) {
+  const [ax, ay] = DIAGONAL.from, [bx, by] = DIAGONAL.to;
+  return ax + (sy - ay) * (bx - ax) / (by - ay);
+}
+export function diagonalY(sx: number) {
+  const [ax, ay] = DIAGONAL.from, [bx, by] = DIAGONAL.to;
+  return ay + (sx - ax) * (by - ay) / (bx - ax);
+}
+
+/** Contorno de la parcela: la fachada NO, la NE y el chaflán de la casa hacen de lindero. */
+export const OUTLINE: readonly SPt[] = [
+  DIAGONAL.from, [1105, 20], [1105, 335], [1350, 335], [1350, 765], CHAMFER_NE, BATH_CORNER,
+];
+
+/* ---- Zonas elevadas (terraza y coches); el resto de la parcela es césped ------- */
+
+/** Terraza: triángulo entre la diagonal, el borde de la cristalera (sy 410) y el paso de la escalera (sx 765). */
+export const TERRACE: readonly SPt[] = [[diagonalX(410), 410], [765, 410], [765, diagonalY(765)]];
 /** Zona de coches; la esquina inferior izquierda la redondean los escalones (radio 25). */
 export const CARS: Rect = [815, 20, 1105, 335];
 export const STRIP: Rect = [840, 335, 1350, 455];
@@ -63,8 +88,8 @@ export const POOL = {
   coping: 0.03,
 };
 
-/** Depuradora: caseta de 1 m de alto sobre el jardín. */
-export const PUMP = { rect: [210, 55, 270, 111] as Rect, height: 1 };
+/** Depuradora: caseta de 1 m de alto sobre el jardín (desplazada de sx 210 a 280 para quedar dentro del nuevo lindero). */
+export const PUMP = { rect: [280, 55, 340, 111] as Rect, height: 1 };
 
 /* ---- Cristalera en el borde de la terraza ----------------------------------- */
 
@@ -72,10 +97,19 @@ export const GLASS_RAIL = { from: [640, 410] as SPt, to: [765, 410] as SPt, heig
 
 /* ---- Elementos sin aclarar, dibujados tal cual en el boceto ------------------ */
 
-/** Barra rayada entre coches y franja, a ras de suelo. */
+/**
+ * Barra rayada entre coches y franja. Cae justo en el desnivel de 1 m entre
+ * ambas: se dibuja como el muro de ese desnivel, con el rayado encima.
+ */
 export const HATCH: Rect = [880, 323, 1105, 347];
-/** Marcas pequeñas junto a la casa: cajas bajas genéricas. */
-export const MARKS: readonly Rect[] = [[880, 457, 900, 475], [842, 708, 864, 726]];
+/**
+ * Marcas pequeñas junto a la casa: cajas bajas genéricas. La primera cae dentro
+ * de la planta baja; la segunda, tras el nuevo lindero, queda fuera de la parcela.
+ */
+export const MARKS: readonly { rect: Rect; level: 'garden' | 'outside' }[] = [
+  { rect: [880, 457, 900, 475], level: 'garden' },
+  { rect: [842, 708, 864, 726], level: 'outside' },
+];
 /** Saliente en el lindero superior (fuera de la parcela) con su cuadrado interior. */
 export const OUTCROP = { outer: [925, -28, 985, 20] as Rect, inner: [943, -14, 965, 8] as Rect };
 /** Altura de las cajas genéricas (m). */
@@ -86,27 +120,45 @@ export const GENERIC_HEIGHT = 0.3;
 /** Muro de 1 m sobre el suelo interior y 50 cm de valla metálica grafito encima. */
 export const BOUNDARY = { thickness: 0.2, wall: 1, fence: 0.5 };
 
-/** Esquina NE del chaflán de la casa en el boceto: desde ahí hasta la escalera no hay fachada en el lindero. */
-const CHAMFER_ON_BOUNDARY = toSketch(FP[2]);
-
 /**
  * Tramos del cerramiento con la cota del suelo interior. Donde la fachada está
- * en el lindero no hay muro, y el frente de los coches (sx 815..1105) queda
- * abierto: es la entrada a la parcela.
+ * en el lindero no hay muro, y en el frente de los coches va el portón (GATE).
  */
 export const BOUNDARY_RUNS: readonly { points: readonly SPt[]; level: number }[] = [
   { points: [[165, 20], [815, 20]], level: LEVELS.garden },
-  { points: [[1105, 20], [1105, 335], [1350, 335], [1350, 455]], level: LEVELS.raised },
-  { points: [CHAMFER_ON_BOUNDARY, [460, 765], [319.4, 410]], level: LEVELS.raised },
-  { points: [[319.4, 410], [165, 20]], level: LEVELS.garden },
+  { points: [[1105, 20], [1105, 335]], level: LEVELS.raised },
+  { points: [[1105, 335], [1350, 335], [1350, 455]], level: LEVELS.garden },
+  { points: [BATH_CORNER, [765, diagonalY(765)]], level: LEVELS.garden },
+  { points: [[765, diagonalY(765)], [diagonalX(410), 410]], level: LEVELS.raised },
+  { points: [[diagonalX(410), 410], DIAGONAL.from], level: LEVELS.garden },
 ];
+
+/**
+ * Portón de entrada en el frente de los coches, del mismo material que la
+ * puerta de la planta baja, a la altura del cerramiento y con pilares de obra.
+ */
+export const GATE = { from: [815, 20] as SPt, to: [1105, 20] as SPt, thickness: 0.06, pillar: 0.3 };
+
+/* ---- Coche ---------------------------------------------------------------------- */
+
+/**
+ * Citroën C3 aparcado de frente (hacia la casa) en el lado derecho de la zona
+ * de coches, dejando sitio para otro. Medidas reales en metros; centro en
+ * unidades del boceto. Blanco con techo negro.
+ */
+export const CAR = {
+  center: [1040, 180] as SPt,
+  length: 4.0, width: 1.75, height: 1.5, wheelbase: 2.54, wheelRadius: 0.32,
+  body: 0xf2f2ef, roof: 0x16181a,
+};
 
 /* ---- Escalera exterior ---------------------------------------------------------- */
 
 /**
  * Arranca junto a la franja (se llega desde los coches) y sube pegada a la
  * fachada SE hasta un rellano frente a la puerta de entrada (a la altura del
- * piso). `maxRiser`: tabica máxima (m); `landingMargin`: lo que sobresale el
- * rellano a cada lado de la puerta (m).
+ * piso). El ancho es el del boceto salvo donde el muro del lindero se acerca:
+ * ahí peldaños y rellano llegan hasta el muro. `maxRiser`: tabica máxima (m);
+ * `landingMargin`: lo que sobresale el rellano a cada lado de la puerta (m).
  */
 export const OUTDOOR_STAIR = { maxRiser: 0.2, landingMargin: 0.1, entranceDoor: [405, 500] as readonly [Px, Px] };
