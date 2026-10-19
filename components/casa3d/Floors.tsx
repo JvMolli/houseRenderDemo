@@ -14,7 +14,7 @@ function Poly({ points, y, material }: { points: readonly Pt[]; y: number; mater
   );
 }
 
-/** Porcelánico blanco roto de todo el piso y gres del baño. */
+/** Porcelánico beige claro de todo el piso y gres del baño. */
 export const Floors = memo(function Floors() {
   const m = useMaterials();
   return (
