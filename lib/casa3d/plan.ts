@@ -229,6 +229,8 @@ export interface Photo {
 export const PHOTOS: readonly Photo[] = [
   { id: 'salon', label: 'Salón visto desde la cocina', src: '/fotos/salon.jpg', width: 1122, height: 1402, x: 354, z: 300, y: 1.5 },
   { id: 'bano', label: 'Baño', src: '/fotos/bano.jpg', width: 941, height: 1672, x: 640, z: 1110, y: 1.5 },
+  // Exterior: sobre el césped del patio, entre la piscina y la terraza (y negativa: por debajo del piso)
+  { id: 'exterior', label: 'Exterior: casa, patio y piscina', src: '/fotos/exterior.png', width: 1900, height: 828, x: -590, z: 1836, y: -0.8 },
 ];
 
 /* =====================================================================
