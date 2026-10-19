@@ -177,7 +177,7 @@ export const OUTFITS: Record<'griller' | 'sunbather1' | 'sunbather2' | 'swimmer'
   sunbather1: { skin: 0xe9b893, hair: 0xcfa760, top: 0xe0605a, bottom: 0xe0605a, shoes: 0xe9b893, legs: 'bare', longHair: true },
   sunbather2: { skin: 0x8a5a3c, hair: 0x15120f, top: 0x2a9d8f, bottom: 0x2a9d8f, shoes: 0x8a5a3c, legs: 'bare', longHair: true },
   swimmer: { skin: 0xe2ad86, hair: 0x5a3b26, top: 0x1f3b73, bottom: 0x1f3b73, shoes: 0xe2ad86, legs: 'bare' },
-  guest1: { skin: 0xe9b893, hair: 0xf4f3ef, top: 0xf2efe8, bottom: 0x2c3a55, shoes: 0x6b4a32, legs: 'trousers', beard: true },
+  guest1: { skin: 0xe9b893, hair: 0xf4f3ef, top: 0x4b5320, bottom: 0x2c3a55, shoes: 0x6b4a32, legs: 'trousers', beard: true },
   guest2: { skin: 0xc58b62, hair: 0x2e221b, top: 0xe8c547, bottom: 0x3a3f46, shoes: 0x2b2b2b, legs: 'trousers', longHair: true },
 };
 
