@@ -131,7 +131,7 @@ export function compass() {
   return c;
 }
 
-/** Puerta seccional del garaje. */
+/** Puerta seccional de la planta baja. */
 export function garageDoor(rnd: Rng) {
   const c = cv(256, 256), x = ctx(c);
   x.fillStyle = '#3a3c3f'; x.fillRect(0, 0, 256, 256);
@@ -164,5 +164,42 @@ export function porcelain(rnd: Rng) {
   }
   x.fillStyle = '#c6b59c';
   for (let k = 0; k < PORCELAIN_TILES; k++) { x.fillRect(k * T, 0, 2, N); x.fillRect(0, k * T, N, 2); }
+  return c;
+}
+
+/** Césped: verde apagado con briznas cortas. */
+export function grass(rnd: Rng) {
+  const N = 256, c = noise(rnd, 112, 138, 78, 26, N), x = ctx(c);
+  x.lineWidth = 1;
+  for (let i = 0; i < 1400; i++) {
+    const g = rnd(), px = rnd() * N, py = rnd() * N;
+    x.strokeStyle = 'rgba(' + (60 + g * 60 | 0) + ',' + (100 + g * 60 | 0) + ',' + (40 + g * 30 | 0) + ',0.35)';
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + (rnd() - 0.5) * 3, py - 2 - rnd() * 4); x.stroke();
+  }
+  return c;
+}
+
+/** Pavimento de n x n piezas por canvas, con ligera variación de tono, moteado y junta de 2 px. */
+export function pavers(rnd: Rng, [r, g, b]: readonly [number, number, number], grout: string, n: number, N = 512) {
+  const T = N / n, c = cv(N, N), x = ctx(c);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const v = (rnd() - 0.5) * 10;
+    x.fillStyle = 'rgb(' + (r + v | 0) + ',' + (g + v | 0) + ',' + (b + v | 0) + ')';
+    x.fillRect(i * T, j * T, T, T);
+  }
+  for (let k = 0; k < 3000; k++) {
+    x.fillStyle = 'rgba(0,0,0,' + (0.03 + rnd() * 0.05) + ')';
+    x.fillRect(rnd() * N, rnd() * N, 1 + rnd() * 2, 1 + rnd() * 2);
+  }
+  x.fillStyle = grout;
+  for (let k = 0; k < n; k++) { x.fillRect(k * T, 0, 2, N); x.fillRect(0, k * T, N, 2); }
+  return c;
+}
+
+/** Rayado a 45° que encaja al repetirse (barra rayada del boceto), sobre fondo transparente. */
+export function hatch() {
+  const N = 64, c = cv(N, N), x = ctx(c);
+  x.strokeStyle = '#2b2a28'; x.lineWidth = 6;
+  for (const o of [-N, 0, N]) { x.beginPath(); x.moveTo(o, N); x.lineTo(o + N, 0); x.stroke(); }
   return c;
 }

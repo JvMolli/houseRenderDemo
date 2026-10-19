@@ -30,12 +30,29 @@ export function mergeByMaterial(solids: readonly Solid[]): { mat: MaterialKey; g
   });
 }
 
-/** shp(): contorno del plano como Shape, en metros con y = -Z para tumbarlo en el suelo. */
-export function planShape(pts: readonly Pt[]): THREE.Shape {
+/** shp(): contorno del plano como Shape, en metros con y = -Z para tumbarlo en el suelo. Admite huecos. */
+export function planShape(pts: readonly Pt[], holes: readonly (readonly Pt[])[] = []): THREE.Shape {
   const s = new THREE.Shape();
   pts.forEach(([px, pz], i) => {
     const a = X(px), b = -Z(pz);
     if (i) s.lineTo(a, b); else s.moveTo(a, b);
   });
+  s.holes = holes.map(h => planShape(h));
   return s;
+}
+
+/** Rectángulo en px del plano como contorno. */
+export const rectPoints = ([x1, z1, x2, z2]: readonly [number, number, number, number]): Pt[] =>
+  [[x1, z1], [x2, z1], [x2, z2], [x1, z2]];
+
+/**
+ * UV planas para una ShapeGeometry: u = (x - x0) / size, v = (y - y0) / size en
+ * coordenadas de la forma. Sirve para que un suelo con huecos se texture igual
+ * que un PlaneGeometry de lado `size` con esquina en (x0, y0).
+ */
+export function setPlanarUV(g: THREE.BufferGeometry, x0: number, y0: number, size: number) {
+  const pos = g.getAttribute('position'), uv = g.getAttribute('uv');
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, (pos.getX(i) - x0) / size, (pos.getY(i) - y0) / size);
+  uv.needsUpdate = true;
+  return g;
 }

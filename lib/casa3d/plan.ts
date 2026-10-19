@@ -9,7 +9,7 @@ export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
   | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'basin'
-  | 'mirror' | 'tubWater' | 'garageDoor';
+  | 'mirror' | 'tubWater' | 'garageDoor' | 'graphite' | 'poolTile';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];
@@ -40,7 +40,7 @@ export interface Opening {
 export type Wall = readonly [dir: 'h' | 'v', a1: Px, a2: Px, c1: Px, c2: Px, ops?: readonly Opening[]];
 
 /* =====================================================================
-   EXTERIOR Y PLANTA BAJA (garaje)
+   EXTERIOR Y PLANTA BAJA (apartamento)
    ===================================================================== */
 
 /** Contorno exterior (con chaflán). */
@@ -55,19 +55,22 @@ export const FP_BOUNDS: Rect = [
 /** Terreno: plano de 44 x 44 m (metros). */
 export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3 };
 
-/** Centro de la puerta del garaje (m), entre la ventana del salón y la de la barra. */
-export const GZ = 4.84;
+/**
+ * Puerta de la planta baja (un apartamento, no un garaje) en la fachada SO,
+ * centrada bajo la ventana de la barra/cocina. Medidas en metros.
+ */
+export const GROUND_DOOR = { center: (Z(737) + Z(897)) / 2, width: 2.0, height: 2.2 };
 
-/** Acera frente al garaje (metros). */
-export const DRIVEWAY = { size: [6, 3.2] as const, position: [X(45) - 3, 0.002, GZ] as Vec3 };
-
-/** Puerta seccional y su marco en la fachada SO (metros). */
-export const GARAGE_DOOR: readonly MBox[] = [
-  [0.06, 2.3, 2.8, X(45) - 0.06, 0, GZ - 1.4, 'garageDoor'],
-  [0.09, 0.08, 2.96, X(45) - 0.09, 2.3, GZ - 1.48, 'black'],
-  [0.09, 2.38, 0.08, X(45) - 0.09, 0, GZ - 1.48, 'black'],
-  [0.09, 2.38, 0.08, X(45) - 0.09, 0, GZ + 1.4, 'black'],
-];
+/** Puerta seccional y su marco (metros). */
+export const GROUND_DOOR_BOXES: readonly MBox[] = (() => {
+  const { center: c, width: w, height: h } = GROUND_DOOR;
+  return [
+    [0.06, h, w, X(45) - 0.06, 0, c - w / 2, 'garageDoor'],
+    [0.09, 0.08, w + 0.16, X(45) - 0.09, h, c - w / 2 - 0.08, 'black'],
+    [0.09, h + 0.08, 0.08, X(45) - 0.09, 0, c - w / 2 - 0.08, 'black'],
+    [0.09, h + 0.08, 0.08, X(45) - 0.09, 0, c + w / 2, 'black'],
+  ];
+})();
 
 /** Brújula: arriba del plano = NO (azimut 315°), ventanas del salón al SO. */
 export const COMPASS = { position: [X(45) - 1.3, 0.02, Z(52) + 1.2] as Vec3, rotationY: -Math.PI / 4, size: 1.8 };
@@ -252,4 +255,5 @@ export const VIEWS: readonly CameraView[] = [
   { label: 'Salón', position: [3.21, 4.6, 7.33], target: [1.87, 4.0, 0.69] },
   { label: 'Cocina', position: [3.13, 4.7, 4.47], target: [1.28, 3.9, 9.09] },
   { label: 'Planta', position: [3.8, 17.5, 5.01], target: [3.8, 3, 5] },
+  { label: 'Parcela', position: [-20, 22, 32], target: [-1.9, 0, 11.7] },
 ];

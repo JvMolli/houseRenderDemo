@@ -15,11 +15,16 @@ Comprobaciones: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`
 - `lib/casa3d/plan.ts`: toda la distribución (muros, huecos, muebles, vistas) en
   píxeles del plano original, 1:1 con `casa-3d.html`. Para mover algo, se edita aquí.
 - `lib/casa3d/units.ts`: conversión px → m (119 px = 1 m, origen en (78, 68)).
+- `lib/casa3d/parcel.ts`: la parcela en unidades del boceto `plano-parcela.html`
+  (1:1 con el SVG), cotas, cerramiento y escalera exterior. El boceto no tiene
+  escala: se encaja estirando su rectángulo «Casa» sobre la huella real, girado
+  90° (arriba del boceto = SO). `parcelShapes.ts` lo convierte en geometría.
 - `lib/casa3d/shapes.ts` y `solids.ts`: helpers puros (equivalentes a `B()`,
   `box()`, `cyl()`, `wall()`) y las listas de sólidos de cada grupo.
 - `lib/casa3d/sun.ts`: cálculo solar para Madrid y conversión de intensidades.
 - `lib/casa3d/textures.ts` y `materials.ts`: texturas de canvas con semilla y
   materiales compartidos.
 - `components/casa3d/`: escena (R3F) y UI. `app/casa/page.tsx`: la página.
+- Fotos: `PHOTOS` en `plan.ts` (posición e imagen en `public/fotos/`).
 
 `casa-3d.html` se conserva en la raíz como referencia.

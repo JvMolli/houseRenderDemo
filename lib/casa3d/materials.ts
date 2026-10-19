@@ -4,13 +4,19 @@
  */
 import * as THREE from 'three';
 import type { MaterialKey } from './plan';
+import { HATCH } from './parcel';
+import { sketchRectCenter } from './parcelShapes';
 import * as tex from './textures';
 
 /** Lado de la baldosa del porcelánico del piso (m). */
 export const FLOOR_TILE = 0.6;
+/** Lado (m) que cubre un canvas de pavimento exterior. */
+const PAVER = 2.4;
 
 /** Materiales que no se usan en cajas del plano. */
-export type ExtraMaterialKey = 'floor' | 'tile' | 'ground' | 'driveway' | 'compass' | 'ambilight' | 'ceiling' | 'sun';
+export type ExtraMaterialKey =
+  | 'floor' | 'tile' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
+  | 'grass' | 'terracePaving' | 'carsPaving' | 'stripPaving' | 'water' | 'hatch';
 export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
 
 /** Crea todos los materiales. Llamar solo en cliente; liberar con disposeMaterials(). */
@@ -34,6 +40,8 @@ export function createMaterials(anisotropy: number): Materials {
   const MT = (o: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial({ roughness: 0.75, ...o });
   const M = (color: number) => MT({ color });
   const basic = (o: THREE.MeshBasicMaterialParameters) => new THREE.MeshBasicMaterial(o);
+
+  const hatchSize = sketchRectCenter(HATCH, 0).size;
 
   // Porcelánico beige claro de 60 x 60 cm: las UV de ShapeGeometry van en metros.
   const floorMap = tx(tex.porcelain(rnd()), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES));
@@ -68,12 +76,20 @@ export function createMaterials(anisotropy: number): Materials {
     tubWater: M(0xcfe0e8),
     garageDoor: MT({ map: plain(tex.garageDoor(rnd())), roughness: 0.5, metalness: 0.3 }),
     ground: MT({ map: tx(tex.noise(rnd(), 200, 196, 188, 18, 256), 22, 22) }),
-    driveway: MT({ map: tx(tex.noise(rnd(), 140, 136, 130, 20, 128), 3, 2) }),
     compass: basic({ map: plain(tex.compass()), transparent: true }),
     ambilight: basic({ map: plain(tex.ambilight()), transparent: true, depthWrite: false }),
     // Techo invisible: no pinta ni escribe profundidad, pero proyecta sombra.
     ceiling: basic({ colorWrite: false, depthWrite: false }),
     sun: basic({ color: 0xffd27a }),
+    // Parcela. Las UV de los suelos van en metros: un canvas de pavimento cubre PAVER m.
+    grass: MT({ map: tx(tex.grass(rnd()), 1 / 2, 1 / 2), roughness: 0.95 }),
+    terracePaving: MT({ map: tx(tex.pavers(rnd(), [214, 198, 174], '#b9a88f', 4), 1 / PAVER, 1 / PAVER) }),
+    carsPaving: MT({ map: tx(tex.pavers(rnd(), [168, 166, 160], '#8f8d88', 8), 1 / PAVER, 1 / PAVER), roughness: 0.85 }),
+    stripPaving: MT({ map: tx(tex.pavers(rnd(), [222, 216, 206], '#b8b0a3', 4), 1 / PAVER, 1 / PAVER) }),
+    poolTile: MT({ map: tx(tex.noise(rnd(), 150, 200, 222, 10)), roughness: 0.4 }),
+    graphite: MT({ color: 0x3a3c3f, metalness: 0.5, roughness: 0.5 }),
+    water: new THREE.MeshStandardMaterial({ color: 0x3d8fbe, transparent: true, opacity: 0.72, roughness: 0.08 }),
+    hatch: MT({ map: tx(tex.hatch(), hatchSize[0] / 0.2, hatchSize[1] / 0.2), transparent: true, depthWrite: false }),
   };
 }
 

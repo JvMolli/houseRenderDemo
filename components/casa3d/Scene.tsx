@@ -13,6 +13,7 @@ import { HouseLights } from './HouseLights';
 import { Kitchen } from './Kitchen';
 import { Living } from './Living';
 import { MaterialsProvider } from './MaterialsContext';
+import { Parcel } from './Parcel';
 import type { PhotoSpotRefs } from './PhotoButtons';
 import { PhotoAnchors } from './PhotoAnchors';
 import { Sun } from './Sun';
@@ -60,6 +61,7 @@ export function Scene({ sun, low, lights, view, photoSpots }: SceneProps) {
       <PhotoAnchors spots={photoSpots} />
 
       <Building />
+      <Parcel />
       <group position-y={FH}>
         <Floors />
         <Walls low={low} />

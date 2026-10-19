@@ -14,7 +14,7 @@ export const OX = 78;
 export const OZ = 68;
 /** Altura libre del piso (m). */
 export const HT = 2.6;
-/** Altura del forjado (m): la planta baja es el garaje. */
+/** Altura del forjado (m) sobre la planta baja. */
 export const FH = 3.0;
 
 /** px del plano -> metros en X. */
