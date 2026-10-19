@@ -3,10 +3,11 @@
  * Para cambiar la distribución se edita plan.ts, no esto.
  */
 import {
-  ARMCHAIRS, BAR, BATHROOM, BATHROOM_CYLS, BEDS, CHAMFER_WALL, CLOSETS, GROUND_DOOR_BOXES, GROUND_SO_WALL, GROUND_WINDOW,
+  ARMCHAIRS, BAR, BATH_CHAMFER_CLADDING, BATH_CLADDING, BATHROOM, BATHROOM_CYLS, BEDS, CHAMFER_WALL, CLOSETS, GROUND_DOOR_BOXES, GROUND_SO_WALL, GROUND_WINDOW,
   KITCHEN, KITCHEN_CYLS, LIVING, STOOLS, WALL_PIECES, WALLS,
 } from './plan';
-import { armchair, bed, chamferWall, closet, cyl, mbox, pbox, stool, wallBoxes, type Solid } from './shapes';
+import { armchair, bed, chamferWall, closet, cyl, mbox, pbox, stool, wallBoxes, wallFacing, type Solid } from './shapes';
+import { HT } from './units';
 
 const [so1, so2] = GROUND_SO_WALL, gw = GROUND_WINDOW;
 
@@ -24,6 +25,10 @@ export const WALL_SOLIDS: readonly Solid[] = [
   ...WALLS.flatMap(wallBoxes).map(pbox),
   ...WALL_PIECES.map(pbox),
   chamferWall(CHAMFER_WALL.from, CHAMFER_WALL.to, CHAMFER_WALL.thickness),
+  ...BATH_CLADDING.map(pbox),
+  // Pizarra en la cara del chaflán que da al baño (a la derecha yendo de from a to)
+  wallFacing(CHAMFER_WALL.from, CHAMFER_WALL.to, -(CHAMFER_WALL.thickness + BATH_CHAMFER_CLADDING.thickness) / 2,
+    BATH_CHAMFER_CLADDING.thickness, BATH_CHAMFER_CLADDING.t0, BATH_CHAMFER_CLADDING.t1, 0, HT, 'slate'),
 ];
 
 export const KITCHEN_SOLIDS: readonly Solid[] = [

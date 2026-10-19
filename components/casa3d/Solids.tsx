@@ -1,10 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { mergeByMaterial } from '@/lib/casa3d/geometry';
+import type { MaterialKey } from '@/lib/casa3d/plan';
 import type { BoxSolid, Solid } from '@/lib/casa3d/shapes';
 import { useMaterials } from './MaterialsContext';
 
-/** El vidrio es transparente: va en mallas sueltas para que se ordene por distancia, y no proyecta sombra. */
-const isGlass = (s: Solid): s is BoxSolid => s.kind === 'box' && s.mat === 'glass';
+/** Los vidrios son transparentes: van en mallas sueltas para que se ordenen por distancia, y no proyectan sombra. */
+const GLASS: ReadonlySet<MaterialKey> = new Set(['glass', 'showerGlass']);
+const isGlass = (s: Solid): s is BoxSolid => s.kind === 'box' && GLASS.has(s.mat);
 
 /**
  * Pinta una lista estática de sólidos. Las piezas opacas se fusionan en una
@@ -22,7 +24,7 @@ export function Solids({ items }: { items: readonly Solid[] }) {
         <mesh key={mat} geometry={geometry} material={m[mat]} castShadow receiveShadow />
       ))}
       {glass.map((s, i) => (
-        <mesh key={i} position={s.position} rotation-y={s.rotationY ?? 0} material={m.glass} receiveShadow>
+        <mesh key={i} position={s.position} rotation-y={s.rotationY ?? 0} material={m[s.mat]} receiveShadow>
           <boxGeometry args={s.size} />
         </mesh>
       ))}

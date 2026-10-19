@@ -78,13 +78,6 @@ export function marble(rnd: Rng) {
   return c;
 }
 
-/** Gres del baño. */
-export function tile(rnd: Rng) {
-  const c = noise(rnd, 222, 219, 213, 8, 256), x = ctx(c);
-  x.strokeStyle = '#b8b3ab'; x.lineWidth = 4; x.strokeRect(0, 0, 256, 256);
-  return c;
-}
-
 export function rug(rnd: Rng) {
   const c = noise(rnd, 214, 205, 191, 18, 256), x = ctx(c);
   x.strokeStyle = 'rgba(150,135,115,0.6)'; x.lineWidth = 6; x.strokeRect(14, 14, 228, 228);
@@ -261,6 +254,65 @@ export function field(rnd: Rng) {
     const px = rnd() * N, py = rnd() * N, g = rnd();
     x.strokeStyle = 'rgba(' + (160 + g * 40 | 0) + ',' + (150 + g * 34 | 0) + ',' + (112 + g * 20 | 0) + ',0.3)';
     x.beginPath(); x.moveTo(px, py); x.lineTo(px + (rnd() - 0.5) * 3, py - 2 - rnd() * 4); x.stroke();
+  }
+  return c;
+}
+
+/**
+ * Pizarra oscura texturizada (baño): baldosas de 0,6 x 1,2 m con juntas
+ * finas, moteado en relieve y alguna veta clara. El canvas cubre 1,2 x 1,2 m.
+ */
+export function slate(rnd: Rng) {
+  const N = 512, c = noise(rnd, 72, 73, 75, 14, N), x = ctx(c);
+  for (let i = 0; i < 900; i++) {
+    const g = rnd() < 0.5 ? 40 : 110;
+    x.fillStyle = 'rgba(' + g + ',' + (g - 2) + ',' + (g - 6) + ',' + (0.05 + rnd() * 0.07) + ')';
+    x.beginPath(); x.ellipse(rnd() * N, rnd() * N, 3 + rnd() * 16, 2 + rnd() * 8, rnd() * 3.14, 0, 7); x.fill();
+  }
+  for (let i = 0; i < 7; i++) {
+    let px = rnd() * N, py = rnd() * N;
+    x.beginPath(); x.moveTo(px, py);
+    for (let j = 0; j < 6; j++) { px += rnd() * 90 - 45; py += rnd() * 60 + 10; x.lineTo(px, py); }
+    x.strokeStyle = 'rgba(190,176,152,' + (0.08 + rnd() * 0.1) + ')'; x.lineWidth = 0.6 + rnd(); x.stroke();
+  }
+  x.fillStyle = 'rgba(30,29,27,0.9)';
+  x.fillRect(0, 0, 2, N); x.fillRect(N / 2, 0, 2, N); x.fillRect(0, 0, N, 2);
+  return c;
+}
+
+/** Tarima de roble (baño): tablas de 0,2 m a lo largo de u, con veta y nudos. El canvas cubre 1,2 x 1,2 m. */
+export function oakPlanks(rnd: Rng) {
+  const N = 512, rows = 6, H = N / rows, c = cv(N, N), x = ctx(c);
+  for (let r = 0; r < rows; r++) {
+    const joint = rnd() * N, y = r * H;
+    for (const [x0, x1] of [[0, joint], [joint, N]]) {
+      const v = (rnd() - 0.5) * 18;
+      x.fillStyle = 'rgb(' + (160 + v | 0) + ',' + (116 + v | 0) + ',' + (76 + v | 0) + ')';
+      x.fillRect(x0, y, x1 - x0, H);
+      for (let k = 0; k < 14; k++) {
+        const gy = y + rnd() * H;
+        x.strokeStyle = 'rgba(96,62,34,' + (0.08 + rnd() * 0.12) + ')'; x.lineWidth = 0.6 + rnd() * 1.4;
+        x.beginPath(); x.moveTo(x0, gy);
+        x.bezierCurveTo(x0 + (x1 - x0) * 0.3, gy + rnd() * 6 - 3, x0 + (x1 - x0) * 0.7, gy + rnd() * 6 - 3, x1, gy + rnd() * 4 - 2);
+        x.stroke();
+      }
+      if (rnd() < 0.4) {
+        x.fillStyle = 'rgba(90,58,32,0.45)';
+        x.beginPath(); x.ellipse(x0 + rnd() * (x1 - x0), y + H / 2, 6 + rnd() * 5, 3 + rnd() * 2, 0, 0, 7); x.fill();
+      }
+    }
+    x.fillStyle = 'rgba(60,40,24,0.7)';
+    x.fillRect(0, y, N, 1.5); x.fillRect(joint, y, 1.5, H);
+  }
+  return c;
+}
+
+/** Piedra gris de los lavabos sobre encimera. */
+export function greyStone(rnd: Rng) {
+  const c = noise(rnd, 128, 126, 120, 34, 256), x = ctx(c);
+  for (let i = 0; i < 160; i++) {
+    x.fillStyle = 'rgba(' + (rnd() < 0.5 ? '70,68,64' : '190,186,178') + ',0.12)';
+    x.beginPath(); x.arc(rnd() * 256, rnd() * 256, 2 + rnd() * 10, 0, 7); x.fill();
   }
   return c;
 }

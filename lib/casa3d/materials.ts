@@ -15,7 +15,7 @@ const PAVER = 2.4;
 
 /** Materiales que no se usan en cajas del plano. */
 export type ExtraMaterialKey =
-  | 'floor' | 'tile' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
+  | 'floor' | 'bathOak' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
   | 'grass' | 'terracePaving' | 'carsPaving' | 'water' | 'hatch'
   | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear' | 'harleyBlue' | 'chrome';
 export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
@@ -46,10 +46,12 @@ export function createMaterials(anisotropy: number): Materials {
 
   // Porcelánico beige claro de 60 x 60 cm: las UV de ShapeGeometry van en metros.
   const floorMap = tx(tex.porcelain(rnd()), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES));
+  // Veta de roble compartida: puertas y muebles (claro) y baño (roble medio, teñido).
+  const woodMap = tx(tex.wood(rnd()));
 
   return {
     white: MT({ color: 0xf1ece4, roughness: 0.45 }),
-    wood: MT({ map: tx(tex.wood(rnd())) }),
+    wood: MT({ map: woodMap }),
     stone: MT({ map: tx(tex.marble(rnd())), roughness: 0.35 }),
     black: M(0x1c1a19),
     wall: MT({ map: tx(tex.noise(rnd(), 246, 242, 236, 6, 256)) }),
@@ -65,16 +67,15 @@ export function createMaterials(anisotropy: number): Materials {
     table: MT({ map: tx(tex.noise(rnd(), 216, 207, 194, 14)) }),
     steel: MT({ color: 0xbcb3a5, metalness: 0.5, roughness: 0.4 }),
     floor: MT({ map: floorMap, roughness: 0.35, side: THREE.DoubleSide }),
-    tile: MT({ map: tx(tex.tile(rnd()), 1 / 0.6, 1 / 0.6), roughness: 0.5, side: THREE.DoubleSide }),
+    // Baño: tarima de roble (UV en metros; un canvas cubre 1,2 m).
+    bathOak: MT({ map: tx(tex.oakPlanks(rnd()), 1 / 1.2, 1 / 1.2), roughness: 0.55, side: THREE.DoubleSide }),
     glass: new THREE.MeshStandardMaterial({ color: 0xa9d4ef, transparent: true, opacity: 0.35 }),
     led: basic({ color: 0xffc070 }),
     screen: basic({ map: plain(tex.screen()) }),
     facade: MT({ map: tx(tex.noise(rnd(), 238, 233, 225, 10, 256)) }),
     handle: M(0xb08a55),
     shelf: M(0xf2e6d0),
-    basin: M(0xcfd6da),
     mirror: MT({ color: 0xbfd0da, roughness: 0.1, metalness: 0.3 }),
-    tubWater: M(0xcfe0e8),
     garageDoor: MT({ map: plain(tex.garageDoor(rnd())), roughness: 0.5, metalness: 0.3 }),
     ground: MT({ map: tx(tex.noise(rnd(), 200, 196, 188, 18, 256), 22, 22) }),
     compass: basic({ map: plain(tex.compass()), transparent: true }),
@@ -100,6 +101,13 @@ export function createMaterials(anisotropy: number): Materials {
     // Moto: azul metalizado y cromados.
     harleyBlue: MT({ color: 0x1d4fa3, roughness: 0.2, metalness: 0.45 }),
     chrome: MT({ color: 0xd8dade, roughness: 0.2, metalness: 0.6 }),
+    // Baño: pizarra de las paredes (UV en metros en las cajas), piedra de los lavabos y plantas.
+    slate: MT({ map: tx(tex.slate(rnd()), 1 / 1.2, 1 / 1.2), roughness: 0.7 }),
+    stoneBowl: MT({ map: tx(tex.greyStone(rnd())), roughness: 0.45 }),
+    oakMedium: MT({ map: woodMap, color: 0xc49a6c, roughness: 0.6 }),
+    // Sin escribir profundidad: así la oclusión ambiental ve lo que hay detrás y no la aclara.
+    showerGlass: new THREE.MeshStandardMaterial({ color: 0xe6eef0, transparent: true, opacity: 0.12, roughness: 0.05, depthWrite: false }),
+    plant: M(0x4f7a3a),
   };
 }
 

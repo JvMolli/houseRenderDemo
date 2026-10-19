@@ -7,10 +7,32 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { MaterialKey, Pt } from './plan';
 import type { Solid } from './shapes';
-import { X, Z } from './units';
+import { X, Z, type Vec3 } from './units';
+
+/** Materiales con juntas o dibujo a escala: sus cajas llevan UV en metros (no 0..1 por cara). */
+const METRIC_UV: ReadonlySet<MaterialKey> = new Set(['slate']);
+
+/**
+ * UV en metros según la orientación de cada cara: (x, y) en las caras ±Z,
+ * (z, y) en las ±X y (x, z) en las ±Y. Con `offset` se usan coordenadas del
+ * mundo para que las juntas sigan de una caja a la siguiente.
+ */
+function metricUV(g: THREE.BufferGeometry, offset: Vec3) {
+  const pos = g.getAttribute('position'), nor = g.getAttribute('normal'), uv = g.getAttribute('uv');
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i) + offset[0], y = pos.getY(i) + offset[1], z = pos.getZ(i) + offset[2];
+    const ax = Math.abs(nor.getX(i)), ay = Math.abs(nor.getY(i));
+    if (ax > 0.5) uv.setXY(i, z, y);
+    else if (ay > 0.5) uv.setXY(i, x, z);
+    else uv.setXY(i, x, y);
+  }
+  uv.needsUpdate = true;
+}
 
 export function solidGeometry(s: Solid): THREE.BufferGeometry {
   const g = s.kind === 'box' ? new THREE.BoxGeometry(...s.size) : new THREE.CylinderGeometry(s.r, s.r, s.h, 24);
+  // Cajas giradas: UV en su espacio local (a lo largo de la cara); el resto, en coordenadas del mundo.
+  if (s.kind === 'box' && METRIC_UV.has(s.mat)) metricUV(g, s.rotationY ? [0, s.position[1], 0] : s.position);
   if (s.kind === 'box' && s.rotationY) g.rotateY(s.rotationY);
   return g.translate(...s.position);
 }

@@ -1,7 +1,7 @@
 import type { Material } from 'three';
 import { memo, useMemo } from 'react';
 import { planShape } from '@/lib/casa3d/geometry';
-import { BATH_TILES, FP, type Pt } from '@/lib/casa3d/plan';
+import { BATH_FLOOR, FP, SHOWER_FLOOR, type Pt } from '@/lib/casa3d/plan';
 import { useMaterials } from './MaterialsContext';
 
 /** poly(): contorno del plano tumbado en el suelo a la altura y (m). */
@@ -14,13 +14,14 @@ function Poly({ points, y, material }: { points: readonly Pt[]; y: number; mater
   );
 }
 
-/** Porcelánico beige claro de todo el piso y gres del baño. */
+/** Porcelánico beige claro de todo el piso, tarima de roble del baño y plato de ducha. */
 export const Floors = memo(function Floors() {
   const m = useMaterials();
   return (
     <>
       <Poly points={FP} y={0} material={m.floor} />
-      <Poly points={BATH_TILES.points} y={BATH_TILES.y} material={m.tile} />
+      <Poly points={BATH_FLOOR.points} y={BATH_FLOOR.y} material={m.bathOak} />
+      <Poly points={SHOWER_FLOOR.points} y={SHOWER_FLOOR.y} material={m.slate} />
     </>
   );
 });

@@ -77,6 +77,22 @@ export function chamferWall(from: Pt, to: Pt, thickness: number): BoxSolid {
   };
 }
 
+/**
+ * Revestimiento sobre la cara de un muro girado: caja fina paralela al muro de
+ * `from` a `to`, desplazada `offset` m en perpendicular (positivo: a la
+ * izquierda yendo de from a to) y recortada a `t0..t1` (fracción del largo).
+ */
+export function wallFacing(from: Pt, to: Pt, offset: number, thickness: number, t0: number, t1: number,
+  y0: number, y1: number, mat: MaterialKey): BoxSolid {
+  const x1 = X(from[0]), z1 = Z(from[1]), x2 = X(to[0]), z2 = Z(to[1]), dx = x2 - x1, dz = z2 - z1, L = Math.hypot(dx, dz);
+  const nx = dz / L, nz = -dx / L, tm = (t0 + t1) / 2;
+  return {
+    kind: 'box', size: [L * (t1 - t0), y1 - y0, thickness],
+    position: [x1 + dx * tm + nx * offset, (y0 + y1) / 2, z1 + dz * tm + nz * offset],
+    rotationY: Math.atan2(-dz, dx), mat,
+  };
+}
+
 /* ---- Muebles ---------------------------------------------------------- */
 
 export const stool = ([px, pz]: Pt): Cyl[] => [

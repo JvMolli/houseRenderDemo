@@ -8,8 +8,8 @@ import { HT, OX, OZ, S, X, Z, type Px, type Vec3 } from './units';
 export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
-  | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'basin'
-  | 'mirror' | 'tubWater' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted';
+  | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'slate' | 'stoneBowl' | 'plant' | 'oakMedium' | 'showerGlass'
+  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];
@@ -94,8 +94,10 @@ export const COMPASS = { position: [X(45) - 1.3, 0.02, Z(52) + 1.2] as Vec3, rot
    PISO (primera planta): suelos
    ===================================================================== */
 
-/** Gres del baño (y = 0.004 m sobre el suelo de roble). */
-export const BATH_TILES = { points: [[522, 942], [870, 942], [640, 1232], [522, 1232]] as readonly Pt[], y: 0.004 };
+/** Tarima de roble del baño (y = 0.004 m sobre el porcelánico). */
+export const BATH_FLOOR = { points: [[522, 942], [870, 942], [640, 1232], [522, 1232]] as readonly Pt[], y: 0.004 };
+/** Plato de ducha de obra en pizarra, recortado por el chaflán. */
+export const SHOWER_FLOOR = { points: [[712, 944], [868, 944], [868, 990], [801, 1062], [712, 1062]] as readonly Pt[], y: 0.008 };
 
 /* =====================================================================
    MUROS
@@ -226,6 +228,7 @@ export interface Photo {
 
 export const PHOTOS: readonly Photo[] = [
   { id: 'salon', label: 'Salón visto desde la cocina', src: '/fotos/salon.jpg', width: 1122, height: 1402, x: 354, z: 300, y: 1.5 },
+  { id: 'bano', label: 'Baño', src: '/fotos/bano.jpg', width: 941, height: 1672, x: 640, z: 1110, y: 1.5 },
 ];
 
 /* =====================================================================
@@ -243,15 +246,64 @@ export const BEDS: readonly Rect[] = [[722, 75, 900, 312], [722, 537, 900, 775]]
    BAÑO
    ===================================================================== */
 
+/*
+ * Baño según la foto: entrando por la puerta (pared oeste) y mirando al
+ * chaflán, mueble doble suspendido a la izquierda (pared norte), ducha de obra
+ * al fondo y listones de roble a la derecha (pared sur) tras el inodoro.
+ */
+
+/** Revestimiento de pizarra en las caras del baño (grupo de muros: baja con las paredes). */
+export const BATH_CLADDING: readonly Box[] = [
+  [522, 942, 868, 944, 0, HT, 'slate'],                                                           // pared norte
+  [522, 944, 524, 1048, 0, HT, 'slate'], [522, 1150, 524, 1230, 0, HT, 'slate'], [522, 1048, 524, 1150, 2.1, HT, 'slate'], // oeste (puerta)
+  [868, 944, 870, 990, 0, HT, 'slate'],                                                           // machón junto al chaflán
+  // Pared sur: listones verticales de roble sobre fondo negro
+  [524, 1230, 636, 1232, 0, HT, 'black'],
+  ...Array.from({ length: 19 }, (_, i): Box => [526 + i * 6, 1226.5, 529.6 + i * 6, 1230, 0, HT, 'oakMedium']),
+];
+/** Revestimiento de pizarra sobre el muro en chaflán (fracción t0..t1 de su largo, lado del baño). */
+export const BATH_CHAMFER_CLADDING = { t0: 0.31, t1: 0.98, thickness: 0.017 };
+
 export const BATHROOM: readonly Box[] = [
-  [524, 945, 620, 997, 0, 0.82, 'wood'], [522, 942, 622, 1000, 0.82, 0.86, 'tub'], [540, 955, 604, 988, 0.86, 0.875, 'basin'], // lavabo
-  [535, 942, 610, 944, 1.1, 1.8, 'mirror'],                                                       // espejo
-  [633, 948, 835, 1032, 0, 0.55, 'tub'], [643, 958, 825, 1022, 0.42, 0.556, 'tubWater'],         // bañera
-  [566, 1210, 600, 1232, 0, 0.8, 'tub'],                                                          // inodoro
+  // Mueble de roble suspendido, doble, con encimera de roble, juntas de cajones y LED debajo
+  [532, 944, 702, 1004, 0.32, 0.8, 'oakMedium'], [530, 944, 704, 1007, 0.8, 0.85, 'oakMedium'],
+  [532, 1004, 702, 1005, 0.555, 0.565, 'black'], [616, 1004, 618, 1005, 0.32, 0.8, 'black'],
+  [536, 1000, 698, 1004, 0.305, 0.315, 'led'],
+  // Ducha: sumidero lineal, mampara fija con perfiles negros y barra estabilizadora
+  [722, 948, 858, 952, 0.008, 0.014, 'black'],
+  [711, 944, 713, 1040, 0.04, 2.0, 'showerGlass'], [709, 944, 715, 1040, 0, 0.04, 'black'],
+  [710, 1038, 714, 1042, 0, 2.0, 'black'], [714, 1039, 822, 1041, 1.97, 1.99, 'black'],
+  // Columna termostática y rociador de techo, negros
+  [862, 958, 868, 998, 1.06, 1.12, 'black'], [863, 976, 867, 980, 1.12, 2.1, 'black'],
+  [762, 966, 822, 1026, 2.22, 2.24, 'black'], [790, 994, 794, 998, 2.24, 2.6, 'black'],
+  // Hornacina de la ducha con luz cálida
+  [810, 944, 812, 956, 1.0, 1.5, 'slate'], [856, 944, 858, 956, 1.0, 1.5, 'slate'],
+  [810, 944, 858, 956, 1.48, 1.5, 'slate'], [810, 944, 858, 956, 1.0, 1.02, 'slate'],
+  [812, 945, 856, 949, 1.465, 1.48, 'led'],
+  // Inodoro suspendido y pulsador
+  [566, 1206, 594, 1226, 0.2, 0.42, 'tub'], [570, 1225, 590, 1226.5, 0.95, 1.12, 'black'],
 ];
 
 export const BATHROOM_CYLS: readonly Cyl[] = [
-  [583, 1188, 0.17, 0, 0.42, 'tub'],                                                              // inodoro
+  [580, 1188, 0.18, 0.2, 0.22, 'tub'],                                                            // taza del inodoro
+  [822, 950, 0.025, 1.02, 0.18, 'black'], [832, 951, 0.02, 1.02, 0.14, 'stoneBowl'],              // botes de la hornacina
+  [846, 950, 0.03, 1.02, 0.06, 'white'], [846, 950, 0.05, 1.08, 0.08, 'plant'],                   // planta de la hornacina
+  [617, 952, 0.025, 0.85, 0.15, 'black'],                                                         // dosificador
+];
+
+/**
+ * Lavabos de piedra sobre encimera, grifos negros altos y espejos redondos
+ * retroiluminados: centros en x (px) del mueble; altura y radios en metros.
+ */
+export const BATH_SINKS = {
+  x: [574, 660] as readonly Px[], z: 975, faucetZ: 952, top: 0.85, bowlRadius: 0.2,
+  mirror: { y: 1.55, radius: 0.3, wallZ: 944 },
+};
+
+/** Luces de ambiente del baño (con «Encender luces»): bajo el mueble y en los espejos. */
+export const BATH_ACCENT_LIGHTS: readonly { x: Px; z: Px; y: number; intensity: number; distance: number }[] = [
+  { x: 617, z: 990, y: 0.2, intensity: 0.8, distance: 1.4 },
+  { x: 617, z: 962, y: 1.55, intensity: 1.2, distance: 2.2 },
 ];
 
 /* =====================================================================
@@ -271,4 +323,5 @@ export const VIEWS: readonly CameraView[] = [
   { label: 'Cocina', position: [3.13, 4.7, 4.47], target: [1.28, 3.9, 9.09] },
   { label: 'Planta', position: [3.8, 17.5, 5.01], target: [3.8, 3, 5] },
   { label: 'Parcela', position: [-20, 22, 32], target: [-1.9, 0, 11.7] },
+  { label: 'Baño', position: [3.85, 4.6, 9.45], target: [6.2, 4.05, 7.75] },
 ];

@@ -13,11 +13,11 @@ type Key = keyof Materials;
 /** Relieve (normalScale) de los materiales con textura. */
 const RELIEF: Partial<Record<Key, number>> = {
   floor: 0.9, wood: 0.5, stone: 0.25, wall: 0.35, facade: 0.7, cushion: 0.6, sofa: 0.6, rug: 0.9, linen: 0.4,
-  throw: 0.7, table: 0.4, tile: 0.8, terracePaving: 1.1, carsPaving: 1.2, grass: 1.0, garageDoor: 1.4, poolTile: 0.5, ground: 1.0,
+  throw: 0.7, table: 0.4, bathOak: 0.7, slate: 1.3, stoneBowl: 0.8, oakMedium: 0.5, terracePaving: 1.1, carsPaving: 1.2, grass: 1.0, garageDoor: 1.4, poolTile: 0.5, ground: 1.0,
 };
 /** Superficies lisas: un micro relieve común para que no parezcan de plástico. */
 const MICRO: Key[] = [
-  'white', 'black', 'door', 'frost', 'steel', 'graphite', 'tub', 'line', 'handle', 'shelf', 'basin', 'tubWater', 'carBody', 'carRoof', 'mirror',
+  'white', 'black', 'door', 'frost', 'steel', 'graphite', 'tub', 'line', 'handle', 'shelf', 'carBody', 'carRoof', 'mirror',
 ];
 /** Brillo de las superficies. */
 const SURFACE: Partial<Record<Key, { roughness: number }>> = {
