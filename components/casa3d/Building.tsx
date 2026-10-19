@@ -4,7 +4,7 @@ import { planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
 import { COMPASS, FP, GROUND } from '@/lib/casa3d/plan';
 import { LEVELS } from '@/lib/casa3d/parcel';
 import { OUTLINE_PLAN } from '@/lib/casa3d/parcelShapes';
-import { GROUND_DOOR_SOLIDS } from '@/lib/casa3d/solids';
+import { GROUND_FLOOR_SOLIDS } from '@/lib/casa3d/solids';
 import { FH, OX, OZ, S } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
 import { Solids } from './Solids';
@@ -18,7 +18,7 @@ const GROUND_RECT = [
   OX + (GROUND.position[0] + half) * S, OZ + (GROUND.position[2] + half) * S,
 ] as const;
 
-/** Terreno exterior a la cota de la calle (con el hueco de la parcela), planta baja (apartamento) con su puerta y brújula. */
+/** Terreno exterior a la cota de la calle (con el hueco de la parcela), planta baja (apartamento) con su puerta y ventanita, y brújula. */
 export const Building = memo(function Building() {
   const m = useMaterials();
   const footprint = useMemo(() => planShape(FP), []);
@@ -35,7 +35,7 @@ export const Building = memo(function Building() {
       <mesh material={m.facade} rotation-x={-Math.PI / 2} castShadow receiveShadow>
         <extrudeGeometry args={[footprint, EXTRUDE]} />
       </mesh>
-      <Solids items={GROUND_DOOR_SOLIDS} />
+      <Solids items={GROUND_FLOOR_SOLIDS} />
       <group position={COMPASS.position} rotation-y={COMPASS.rotationY}>
         <mesh material={m.compass} rotation-x={-Math.PI / 2}>
           <planeGeometry args={[COMPASS.size, COMPASS.size]} />

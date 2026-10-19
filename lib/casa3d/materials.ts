@@ -17,7 +17,7 @@ const PAVER = 2.4;
 export type ExtraMaterialKey =
   | 'floor' | 'tile' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
   | 'grass' | 'terracePaving' | 'carsPaving' | 'water' | 'hatch'
-  | 'carBody' | 'carRoof' | 'carGlass' | 'carLightFront' | 'carLightRear';
+  | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear';
 export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
 
 /** Crea todos los materiales. Llamar solo en cliente; liberar con disposeMaterials(). */
@@ -90,10 +90,11 @@ export function createMaterials(anisotropy: number): Materials {
     graphite: MT({ color: 0x3a3c3f, metalness: 0.5, roughness: 0.5 }),
     water: new THREE.MeshStandardMaterial({ color: 0x3d8fbe, transparent: true, opacity: 0.72, roughness: 0.08 }),
     hatch: MT({ map: tx(tex.hatch(), hatchSize[0] / 0.2, hatchSize[1] / 0.2), transparent: true, depthWrite: false }),
-    // Coche: pintura brillante, cristales tintados y pilotos.
+    // Cristal tintado opaco: ventanillas del coche y ventanita de la planta baja (que es maciza).
+    tinted: MT({ color: 0x1b252c, roughness: 0.08, metalness: 0.4 }),
+    // Coche: pintura brillante y pilotos.
     carBody: MT({ color: CAR.body, roughness: 0.25, metalness: 0.3 }),
     carRoof: MT({ color: CAR.roof, roughness: 0.25, metalness: 0.3 }),
-    carGlass: MT({ color: 0x1b252c, roughness: 0.08, metalness: 0.4 }),
     carLightFront: basic({ color: 0xeef3f5 }),
     carLightRear: basic({ color: 0xa3121c }),
   };

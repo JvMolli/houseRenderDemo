@@ -46,7 +46,7 @@ export function buildCar(): { mat: MaterialKey | ExtraMaterialKey; geometry: THR
       extrudeProfile(body, W, 0.06),
       box(0.12, 0.08, 0.14, 2.75, 1.03, side + 0.04), box(0.12, 0.08, 0.14, 2.75, 1.03, -side - 0.04),
     ],
-    carGlass: [extrudeProfile(cabin, W - 0.14, 0.03)],
+    tinted: [extrudeProfile(cabin, W - 0.14, 0.03)],
     carRoof: [extrudeProfile(roof, W - 0.1, 0.03)],
     black: [
       ...[rearAxle, frontAxle].flatMap(x => [wheel(r, 0.22, x, side - 0.1), wheel(r, 0.22, x, -side + 0.1)]),

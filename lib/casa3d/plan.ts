@@ -9,7 +9,7 @@ export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
   | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'basin'
-  | 'mirror' | 'tubWater' | 'garageDoor' | 'graphite' | 'poolTile';
+  | 'mirror' | 'tubWater' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];
@@ -69,6 +69,23 @@ export const GROUND_DOOR_BOXES: readonly MBox[] = (() => {
     [0.09, 0.08, w + 0.16, X(45) - 0.09, h, c - w / 2 - 0.08, 'black'],
     [0.09, h + 0.08, 0.08, X(45) - 0.09, 0, c - w / 2 - 0.08, 'black'],
     [0.09, h + 0.08, 0.08, X(45) - 0.09, 0, c + w / 2, 'black'],
+  ];
+})();
+
+/**
+ * Ventanita de la planta baja en la fachada SO, centrada bajo la ventana del
+ * salón. La planta baja es maciza: cristal tintado sobre la fachada y marco.
+ */
+export const GROUND_WINDOW = { center: (Z(268) + Z(552)) / 2, width: 1.0, sill: 1.3, head: 2.0 };
+
+export const GROUND_WINDOW_BOXES: readonly MBox[] = (() => {
+  const { center: c, width: w, sill: s, head: h } = GROUND_WINDOW, f = 0.05;
+  return [
+    [0.03, h - s, w, X(45) - 0.03, s, c - w / 2, 'tinted'],
+    [0.07, f, w + 2 * f, X(45) - 0.07, s - f, c - w / 2 - f, 'black'],
+    [0.07, f, w + 2 * f, X(45) - 0.07, h, c - w / 2 - f, 'black'],
+    [0.07, h - s, f, X(45) - 0.07, s, c - w / 2 - f, 'black'],
+    [0.07, h - s, f, X(45) - 0.07, s, c + w / 2, 'black'],
   ];
 })();
 
