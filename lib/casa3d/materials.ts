@@ -1,0 +1,89 @@
+/**
+ * Materiales de la maqueta: una sola instancia de cada uno, compartida por
+ * todas las piezas. Las texturas de canvas se generan aquí una sola vez.
+ */
+import * as THREE from 'three';
+import { FP_BOUNDS, type MaterialKey } from './plan';
+import * as tex from './textures';
+import { X, Z } from './units';
+
+/** Materiales que no se usan en cajas del plano. */
+export type ExtraMaterialKey = 'floor' | 'tile' | 'ground' | 'driveway' | 'compass' | 'ambilight' | 'ceiling' | 'sun';
+export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
+
+/** Crea todos los materiales. Llamar solo en cliente; liberar con disposeMaterials(). */
+export function createMaterials(anisotropy: number): Materials {
+  let seed = 0;
+  const rnd = () => tex.mulberry32(++seed);
+
+  // Textura de color: sRGB (desde r152 la salida es sRGB).
+  const plain = (c: HTMLCanvasElement) => {
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  const tx = (c: HTMLCanvasElement, rx = 1, ry = 1) => {
+    const t = plain(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx, ry);
+    t.anisotropy = anisotropy;
+    return t;
+  };
+  const MT = (o: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial({ roughness: 0.75, ...o });
+  const M = (color: number) => MT({ color });
+  const basic = (o: THREE.MeshBasicMaterialParameters) => new THREE.MeshBasicMaterial(o);
+
+  // Suelo en espiga: un canvas para todo el piso, mapeado con las UV en metros de ShapeGeometry.
+  const [bx1, bz1, bx2, bz2] = FP_BOUNDS;
+  const x0 = X(bx1), x1 = X(bx2), y0 = -Z(bz2), y1 = -Z(bz1), Wm = x1 - x0, Hm = y1 - y0;
+  const floorMap = plain(tex.herringbone(rnd(), Wm, Hm));
+  floorMap.anisotropy = anisotropy;
+  floorMap.repeat.set(1 / Wm, 1 / Hm);
+  floorMap.offset.set(-x0 / Wm, -y0 / Hm);
+
+  return {
+    white: MT({ color: 0xf1ece4, roughness: 0.45 }),
+    wood: MT({ map: tx(tex.wood(rnd())) }),
+    stone: MT({ map: tx(tex.marble(rnd())), roughness: 0.35 }),
+    black: M(0x1c1a19),
+    wall: MT({ map: tx(tex.noise(rnd(), 246, 242, 236, 6, 256)) }),
+    line: M(0xc9c0b2),
+    cushion: MT({ map: tx(tex.noise(rnd(), 231, 222, 208, 22), 3, 3) }),
+    sofa: MT({ map: tx(tex.noise(rnd(), 227, 219, 207, 22), 4, 4) }),
+    rug: MT({ map: tx(tex.rug(rnd())) }),
+    linen: MT({ map: tx(tex.noise(rnd(), 250, 247, 242, 8), 3, 3) }),
+    throw: MT({ map: tx(tex.noise(rnd(), 201, 185, 163, 26), 4, 4) }),
+    tub: MT({ color: 0xfdfdfb, roughness: 0.3 }),
+    door: M(0x3a3a3a),
+    frost: M(0xdfe6ea),
+    table: MT({ map: tx(tex.noise(rnd(), 216, 207, 194, 14)) }),
+    steel: MT({ color: 0xbcb3a5, metalness: 0.5, roughness: 0.4 }),
+    floor: MT({ map: floorMap, roughness: 0.6, side: THREE.DoubleSide }),
+    tile: MT({ map: tx(tex.tile(rnd()), 1 / 0.6, 1 / 0.6), roughness: 0.5, side: THREE.DoubleSide }),
+    glass: new THREE.MeshStandardMaterial({ color: 0xa9d4ef, transparent: true, opacity: 0.35 }),
+    led: basic({ color: 0xffc070 }),
+    screen: basic({ map: plain(tex.screen()) }),
+    facade: MT({ map: tx(tex.noise(rnd(), 238, 233, 225, 10, 256)) }),
+    handle: M(0xb08a55),
+    shelf: M(0xf2e6d0),
+    basin: M(0xcfd6da),
+    mirror: MT({ color: 0xbfd0da, roughness: 0.1, metalness: 0.3 }),
+    tubWater: M(0xcfe0e8),
+    garageDoor: MT({ map: plain(tex.garageDoor(rnd())), roughness: 0.5, metalness: 0.3 }),
+    ground: MT({ map: tx(tex.noise(rnd(), 200, 196, 188, 18, 256), 22, 22) }),
+    driveway: MT({ map: tx(tex.noise(rnd(), 140, 136, 130, 20, 128), 3, 2) }),
+    compass: basic({ map: plain(tex.compass()), transparent: true }),
+    ambilight: basic({ map: plain(tex.ambilight()), transparent: true, depthWrite: false }),
+    // Techo invisible: no pinta ni escribe profundidad, pero proyecta sombra.
+    ceiling: basic({ colorWrite: false, depthWrite: false }),
+    sun: basic({ color: 0xffd27a }),
+  };
+}
+
+/** Libera materiales y sus texturas. */
+export function disposeMaterials(materials: Materials) {
+  for (const m of Object.values(materials)) {
+    if ('map' in m && m.map instanceof THREE.Texture) m.map.dispose();
+    m.dispose();
+  }
+}

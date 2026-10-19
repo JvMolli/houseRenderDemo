@@ -53,7 +53,7 @@ export const FP_BOUNDS: Rect = [
 ];
 
 /** Terreno: plano de 44 x 44 m (metros). */
-export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3, repeat: 22 };
+export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3 };
 
 /** Centro de la puerta del garaje (m), entre la ventana del salón y la de la barra. */
 export const GZ = 4.84;

@@ -1,0 +1,8 @@
+.wrap {
+  width: 100%;
+  height: min(70vh, 640px);
+  min-height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none;
+}

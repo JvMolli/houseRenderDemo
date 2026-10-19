@@ -1,0 +1,39 @@
+import { memo } from 'react';
+import { AMBILIGHT, AMBILIGHT_LIGHTS, ARMCHAIRS, LIVING } from '@/lib/casa3d/plan';
+import { armchair, pbox, type Solid } from '@/lib/casa3d/shapes';
+import { X } from '@/lib/casa3d/units';
+import { useMaterials } from './MaterialsContext';
+import { Solids } from './Solids';
+
+const SOLIDS: Solid[] = [...LIVING, ...ARMCHAIRS.flatMap(armchair)].map(pbox);
+
+/**
+ * PointLight del ambilight en unidades físicas (decay 2). En r128 eran 0,8 con
+ * distance 1,8 y caída lineal; estos valores están ajustados a ojo para que el
+ * resplandor en la pared se parezca al original.
+ */
+const AMBI_INTENSITY = 1.7;
+const AMBI_DISTANCE = 1.4;
+
+/** Mueble TV, TV con ambilight, hornacina, alfombra, butacas, mesa y sofá. */
+export const Living = memo(function Living({ low }: { low: boolean }) {
+  const m = useMaterials();
+  return (
+    <>
+      <Solids items={SOLIDS} />
+      <mesh material={m.ambilight} position={[X(AMBILIGHT.x), AMBILIGHT.y, AMBILIGHT.z]} visible={!low}>
+        <planeGeometry args={[...AMBILIGHT.size]} />
+      </mesh>
+      {AMBILIGHT_LIGHTS.map(l => (
+        <pointLight
+          key={l.x}
+          color={l.color}
+          intensity={AMBI_INTENSITY}
+          distance={AMBI_DISTANCE}
+          decay={2}
+          position={[X(l.x), l.y, l.z]}
+        />
+      ))}
+    </>
+  );
+});

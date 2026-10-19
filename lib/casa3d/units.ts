@@ -7,7 +7,7 @@
 
 /** Coordenada del plano en píxeles. */
 export type Px = number;
-export type Vec3 = readonly [number, number, number];
+export type Vec3 = [number, number, number];
 
 export const S = 119;
 export const OX = 78;
