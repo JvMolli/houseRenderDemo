@@ -329,3 +329,21 @@ export const VIEWS: readonly CameraView[] = [
   { label: 'Parcela', position: [-20, 22, 32], target: [-1.9, 0, 11.7] },
   { label: 'Baño', position: [3.85, 4.6, 9.45], target: [6.2, 4.05, 7.75] },
 ];
+
+const view = (label: string) => VIEWS.find(v => v.label === label)!;
+
+/** Paradas del modo tour, en orden: de la parcela al baño y vuelta a la vista general. */
+export const TOUR: readonly CameraView[] = [
+  { ...view('Parcela'), label: 'La parcela' },
+  { label: 'Entrada', position: [-19, 3.6, 11.5], target: [-11.6, 1.6, 7.66] },
+  { label: 'Coche y moto', position: [-10.5, 3.0, 9.8], target: [-6.5, 1.6, 6.5] },
+  { label: 'Barbacoa', position: [-2.4, 1.9, 5.8], target: [-1.9, 1.1, 2.9] },
+  { label: 'Piscina y tumbonas', position: [-2.5, 4.5, 18.5], target: [-7.5, 0.2, 14.5] },
+  { label: 'Terraza', position: [-3.6, 3.0, 14.6], target: [0.1, 1.6, 12.4] },
+  { label: 'Escalera de entrada', position: [-2.6, 1.8, 10.6], target: [3.0, 3.2, 10.8] },
+  view('Salón'),
+  view('Cocina'),
+  { label: 'Dormitorio', position: [5.0, 4.6, 3.6], target: [6.3, 3.6, 0.8] },
+  view('Baño'),
+  { ...view('General'), label: 'Vista general' },
+];

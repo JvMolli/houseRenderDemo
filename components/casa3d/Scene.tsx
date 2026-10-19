@@ -17,6 +17,7 @@ import { MaterialsProvider } from './MaterialsContext';
 import { Parcel } from './Parcel';
 import type { PhotoSpotRefs } from './PhotoButtons';
 import { PhotoAnchors } from './PhotoAnchors';
+import { TourRig } from './TourRig';
 import { Sun } from './Sun';
 import { Walls } from './Walls';
 
@@ -35,6 +36,12 @@ export interface SceneProps {
   view: ViewRequest;
   /** Botones de las fotos, que se colocan sobre el lienzo. */
   photoSpots: PhotoSpotRefs;
+  /** Modo tour: la cámara recorre la casa sola. */
+  tour: boolean;
+  onTourStop: (index: number) => void;
+  onTourEnd: () => void;
+  /** Avance del tour (0..1) en cada frame: se pinta sin re-renderizar React. */
+  tourProgress: (k: number) => void;
 }
 
 /** Mueve cámara y objetivo de los controles al pulsar una vista. */
@@ -51,7 +58,7 @@ function CameraRig({ view }: { view: ViewRequest }) {
   return null;
 }
 
-export function Scene({ sun, low, lights, game, view, photoSpots }: SceneProps) {
+export function Scene({ sun, low, lights, game, view, photoSpots, tour, onTourStop, onTourEnd, tourProgress }: SceneProps) {
   // Modo videojuego: de noche la luz ambiente es la de la luna, azulada.
   const skyFill = useMemo(() => new Color().setRGB(...lerpHex(0x7f97c9, 0xffffff, sun.kd), SRGBColorSpace), [sun.kd]);
   const background = useMemo(() => new Color().setRGB(...lerpHex(SKY_NIGHT, SKY_DAY, sun.kd), SRGBColorSpace), [sun.kd]);
@@ -69,6 +76,7 @@ export function Scene({ sun, low, lights, game, view, photoSpots }: SceneProps) 
       <OrbitControls makeDefault enableDamping maxPolarAngle={Math.PI / 2 - 0.02} maxDistance={40} />
       <CameraRig view={view} />
       <PhotoAnchors spots={photoSpots} />
+      <TourRig active={tour} onStop={onTourStop} onEnd={onTourEnd} progress={tourProgress} />
 
       <Building />
       <Parcel />
