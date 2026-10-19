@@ -1,12 +1,11 @@
 import { memo, useMemo } from 'react';
 import { planShape } from '@/lib/casa3d/geometry';
-import { COMPASS, DRIVEWAY, FP, GARAGE_DOOR, GROUND } from '@/lib/casa3d/plan';
-import { mbox } from '@/lib/casa3d/shapes';
+import { COMPASS, DRIVEWAY, FP, GROUND } from '@/lib/casa3d/plan';
+import { GARAGE_SOLIDS } from '@/lib/casa3d/solids';
 import { FH } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
 import { Solids } from './Solids';
 
-const GARAGE_SOLIDS = GARAGE_DOOR.map(mbox);
 const EXTRUDE = { depth: FH - 0.01, bevelEnabled: false };
 
 /** Terreno, planta baja (garaje) con su puerta seccional y brújula. */

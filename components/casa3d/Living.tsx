@@ -1,11 +1,9 @@
 import { memo } from 'react';
-import { AMBILIGHT, AMBILIGHT_LIGHTS, ARMCHAIRS, LIVING } from '@/lib/casa3d/plan';
-import { armchair, pbox, type Solid } from '@/lib/casa3d/shapes';
+import { AMBILIGHT, AMBILIGHT_LIGHTS } from '@/lib/casa3d/plan';
+import { LIVING_SOLIDS } from '@/lib/casa3d/solids';
 import { X } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
 import { Solids } from './Solids';
-
-const SOLIDS: Solid[] = [...LIVING, ...ARMCHAIRS.flatMap(armchair)].map(pbox);
 
 /**
  * PointLight del ambilight en unidades físicas (decay 2). En r128 eran 0,8 con
@@ -20,7 +18,7 @@ export const Living = memo(function Living({ low }: { low: boolean }) {
   const m = useMaterials();
   return (
     <>
-      <Solids items={SOLIDS} />
+      <Solids items={LIVING_SOLIDS} />
       <mesh material={m.ambilight} position={[X(AMBILIGHT.x), AMBILIGHT.y, AMBILIGHT.z]} visible={!low}>
         <planeGeometry args={[...AMBILIGHT.size]} />
       </mesh>
