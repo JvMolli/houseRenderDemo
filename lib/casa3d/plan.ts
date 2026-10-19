@@ -46,7 +46,7 @@ export type Wall = readonly [dir: 'h' | 'v', a1: Px, a2: Px, c1: Px, c2: Px, ops
 /** Contorno exterior (con chaflán). */
 export const FP: readonly Pt[] = [[45, 52], [1005, 52], [1005, 900], [650, 1265], [45, 1265]];
 
-/** Rectángulo que envuelve FP: suelo en espiga y techo de sombra. */
+/** Rectángulo que envuelve FP: techo de sombra. */
 export const FP_BOUNDS: Rect = [
   Math.min(...FP.map(p => p[0])), Math.min(...FP.map(p => p[1])),
   Math.max(...FP.map(p => p[0])), Math.max(...FP.map(p => p[1])),

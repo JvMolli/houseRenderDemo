@@ -3,9 +3,11 @@
  * todas las piezas. Las texturas de canvas se generan aquí una sola vez.
  */
 import * as THREE from 'three';
-import { FP_BOUNDS, type MaterialKey } from './plan';
+import type { MaterialKey } from './plan';
 import * as tex from './textures';
-import { X, Z } from './units';
+
+/** Lado de la baldosa del porcelánico del piso (m). */
+export const FLOOR_TILE = 0.6;
 
 /** Materiales que no se usan en cajas del plano. */
 export type ExtraMaterialKey = 'floor' | 'tile' | 'ground' | 'driveway' | 'compass' | 'ambilight' | 'ceiling' | 'sun';
@@ -33,13 +35,8 @@ export function createMaterials(anisotropy: number): Materials {
   const M = (color: number) => MT({ color });
   const basic = (o: THREE.MeshBasicMaterialParameters) => new THREE.MeshBasicMaterial(o);
 
-  // Suelo en espiga: un canvas para todo el piso, mapeado con las UV en metros de ShapeGeometry.
-  const [bx1, bz1, bx2, bz2] = FP_BOUNDS;
-  const x0 = X(bx1), x1 = X(bx2), y0 = -Z(bz2), y1 = -Z(bz1), Wm = x1 - x0, Hm = y1 - y0;
-  const floorMap = plain(tex.herringbone(rnd(), Wm, Hm));
-  floorMap.anisotropy = anisotropy;
-  floorMap.repeat.set(1 / Wm, 1 / Hm);
-  floorMap.offset.set(-x0 / Wm, -y0 / Hm);
+  // Porcelánico gris de 60 x 60 cm: las UV de ShapeGeometry van en metros.
+  const floorMap = tx(tex.porcelain(rnd()), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES));
 
   return {
     white: MT({ color: 0xf1ece4, roughness: 0.45 }),
@@ -58,7 +55,7 @@ export function createMaterials(anisotropy: number): Materials {
     frost: M(0xdfe6ea),
     table: MT({ map: tx(tex.noise(rnd(), 216, 207, 194, 14)) }),
     steel: MT({ color: 0xbcb3a5, metalness: 0.5, roughness: 0.4 }),
-    floor: MT({ map: floorMap, roughness: 0.6, side: THREE.DoubleSide }),
+    floor: MT({ map: floorMap, roughness: 0.35, side: THREE.DoubleSide }),
     tile: MT({ map: tx(tex.tile(rnd()), 1 / 0.6, 1 / 0.6), roughness: 0.5, side: THREE.DoubleSide }),
     glass: new THREE.MeshStandardMaterial({ color: 0xa9d4ef, transparent: true, opacity: 0.35 }),
     led: basic({ color: 0xffc070 }),

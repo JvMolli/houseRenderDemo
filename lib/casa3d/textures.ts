@@ -145,39 +145,23 @@ export function garageDoor(rnd: Rng) {
 }
 
 /**
- * Suelo en espiga de roble claro: se dibuja de una vez para todo el piso,
- * en metros. Wm x Hm es el tamaño del rectángulo que cubre.
+ * Porcelánico gris: 4 x 4 baldosas por canvas, con un ligero cambio de tono
+ * entre piezas, moteado fino y junta de 2 px. Cada baldosa ocupa T px.
  */
-export function herringbone(rnd: Rng, Wm: number, Hm: number) {
-  const N = 2048, c = cv(N, N), x = ctx(c);
-  x.setTransform(N / Wm, 0, 0, N / Hm, 0, 0);
-  x.fillStyle = '#d8b98e'; x.fillRect(0, 0, Wm, Hm);
-  x.translate(Wm / 2, Hm / 2); x.rotate(Math.PI / 4);
-  const w = 0.11, L = 0.55; // tablilla 11 x 55 cm
-  const pl = (px: number, py: number, pw: number, ph: number, hor: boolean) => {
-    x.fillStyle = 'hsl(' + (32 + rnd() * 6) + ',' + (40 + rnd() * 12) + '%,' + (69 + rnd() * 9) + '%)';
-    x.fillRect(px, py, pw, ph);
-    x.lineWidth = 0.0035;
-    for (let k = 0; k < 2; k++) {
-      const t = rnd();
-      x.strokeStyle = 'rgba(150,105,60,' + (0.1 + rnd() * 0.12) + ')';
-      x.beginPath();
-      if (hor) {
-        const yy = py + ph * t;
-        x.moveTo(px, yy);
-        x.bezierCurveTo(px + pw * 0.3, yy + (rnd() - 0.5) * 0.02, px + pw * 0.7, yy + (rnd() - 0.5) * 0.02, px + pw, yy);
-      } else {
-        const xx = px + pw * t;
-        x.moveTo(xx, py);
-        x.bezierCurveTo(xx + (rnd() - 0.5) * 0.02, py + ph * 0.3, xx + (rnd() - 0.5) * 0.02, py + ph * 0.7, xx, py + ph);
-      }
-      x.stroke();
-    }
-    x.strokeStyle = 'rgba(120,85,50,0.5)'; x.lineWidth = 0.004; x.strokeRect(px, py, pw, ph);
-  };
-  for (let s = -10; s <= 10; s++) for (let k = -48; k <= 48; k++) {
-    const ox = k * w + s * L, oy = k * w - s * L;
-    pl(ox, oy, L, w, true); pl(ox, oy + w, w, L, false);
+export const PORCELAIN_TILES = 4;
+export function porcelain(rnd: Rng) {
+  const T = 256, N = T * PORCELAIN_TILES, c = cv(N, N), x = ctx(c);
+  for (let i = 0; i < PORCELAIN_TILES; i++) for (let j = 0; j < PORCELAIN_TILES; j++) {
+    const v = 176 + (rnd() - 0.5) * 8;
+    x.fillStyle = 'rgb(' + (v | 0) + ',' + (v | 0) + ',' + ((v - 2) | 0) + ')';
+    x.fillRect(i * T, j * T, T, T);
   }
+  for (let k = 0; k < 9000; k++) {
+    const g = 150 + rnd() * 60 | 0;
+    x.fillStyle = 'rgba(' + g + ',' + g + ',' + g + ',0.18)';
+    x.fillRect(rnd() * N, rnd() * N, 1 + rnd() * 2, 1 + rnd() * 2);
+  }
+  x.fillStyle = '#9a9a97';
+  for (let k = 0; k < PORCELAIN_TILES; k++) { x.fillRect(k * T, 0, 2, N); x.fillRect(0, k * T, N, 2); }
   return c;
 }
