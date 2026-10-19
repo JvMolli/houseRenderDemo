@@ -6,3 +6,56 @@
   overflow: hidden;
   touch-action: none;
 }
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.timeRow {
+  margin-top: 14px;
+  gap: 10px;
+}
+
+.row button {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.row button:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.row button.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border-color: transparent;
+}
+
+.row input[type="range"] {
+  flex: 1;
+}
+
+.sunIcon {
+  color: var(--muted);
+}
+
+.hour {
+  min-width: 48px;
+  font-size: 14px;
+}
+
+.info {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}

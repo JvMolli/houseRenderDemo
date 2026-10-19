@@ -9,11 +9,11 @@ const SOLIDS: Solid[] = [...LIVING, ...ARMCHAIRS.flatMap(armchair)].map(pbox);
 
 /**
  * PointLight del ambilight en unidades físicas (decay 2). En r128 eran 0,8 con
- * distance 1,8 y caída lineal; estos valores están ajustados a ojo para que el
- * resplandor en la pared se parezca al original.
+ * distance 1,8 y caída lineal; estos valores están ajustados para que el
+ * resplandor en la pared se parezca al original a las 17:30.
  */
-const AMBI_INTENSITY = 1.7;
-const AMBI_DISTANCE = 1.4;
+const AMBI_INTENSITY = 1.0;
+const AMBI_DISTANCE = 2.3;
 
 /** Mueble TV, TV con ambilight, hornacina, alfombra, butacas, mesa y sofá. */
 export const Living = memo(function Living({ low }: { low: boolean }) {
