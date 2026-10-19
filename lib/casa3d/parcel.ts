@@ -63,8 +63,13 @@ export const OUTLINE: readonly SPt[] = [
 
 /* ---- Zonas elevadas (terraza y coches); el resto de la parcela es césped ------- */
 
-/** Terraza: triángulo entre la diagonal, el borde de la cristalera (sy 410) y el paso de la escalera (sx 765). */
-export const TERRACE: readonly SPt[] = [[diagonalX(410), 410], [765, 410], [765, diagonalY(765)]];
+/**
+ * Terraza: triángulo entre la diagonal, el borde de la cristalera hacia la
+ * piscina (sy 350) y la escalera de entrada (sx 765). No tiene escalones
+ * propios: se entra desde el peldaño de la escalera que queda a su altura.
+ */
+export const TERRACE_EDGE = 350;
+export const TERRACE: readonly SPt[] = [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], [765, TERRACE_EDGE], [765, diagonalY(765)]];
 /** Zona de coches; la esquina inferior izquierda la redondean los escalones (radio 25). */
 export const CARS: Rect = [815, 20, 1105, 335];
 export const STRIP: Rect = [840, 335, 1350, 455];
@@ -72,8 +77,6 @@ export const STAIR: Rect = [765, 455, 840, 765];
 
 /* ---- Escalones (cada uno baja 25 cm: 4 peldaños = 1 m) ----------------------- */
 
-/** Entre terraza y piscina: líneas de peldaño (sy) de abajo hacia la terraza y extremo derecho (sx). */
-export const TERRACE_STEPS = { lines: [388, 395.3, 402.7, 410], right: 620 };
 /** Junto a los coches: líneas de peldaño (sx), tramo recto de sy 20 a 300 y giro alrededor de (840, 300). */
 export const CAR_STEPS = { lines: [790, 798.3, 806.7, 815], top: 20, bottom: 300, center: [840, 300] as SPt };
 
@@ -94,7 +97,12 @@ export const PUMP = { rect: [280, 55, 340, 111] as Rect, height: 1 };
 
 /* ---- Cristalera en el borde de la terraza ----------------------------------- */
 
-export const GLASS_RAIL = { from: [640, 410] as SPt, to: [765, 410] as SPt, height: 1 };
+/**
+ * Cristalera de la terraza: todo el borde hacia la piscina y el lado del
+ * jardín junto al arranque de la escalera, hasta el peldaño a cota de terraza.
+ * La escalera lleva también cristal en el tramo que sube por encima de la terraza.
+ */
+export const GLASS_RAIL = { points: [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], [765, TERRACE_EDGE]] as readonly SPt[], height: 1, stairHeight: 0.9 };
 
 /* ---- Elementos sin aclarar, dibujados tal cual en el boceto ------------------ */
 
@@ -130,8 +138,8 @@ export const BOUNDARY_RUNS: readonly { points: readonly SPt[]; level: number }[]
   { points: [[1105, 20], [1105, 335]], level: LEVELS.raised },
   { points: [[1105, 335], [1350, 335], [1350, 455]], level: LEVELS.garden },
   { points: [BATH_CORNER, [765, diagonalY(765)]], level: LEVELS.garden },
-  { points: [[765, diagonalY(765)], [diagonalX(410), 410]], level: LEVELS.raised },
-  { points: [[diagonalX(410), 410], DIAGONAL.from], level: LEVELS.garden },
+  { points: [[765, diagonalY(765)], [diagonalX(TERRACE_EDGE), TERRACE_EDGE]], level: LEVELS.raised },
+  { points: [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], DIAGONAL.from], level: LEVELS.garden },
 ];
 
 /**
@@ -176,7 +184,7 @@ export interface Outfit {
  */
 export const LOUNGERS = { at: [[600, 300], [680, 300]] as readonly SPt[], length: 1.9, width: 0.65 };
 /** Terraza: mesita redonda con dos sillas enfrentadas (centros en el boceto). */
-export const TERRACE_SET = { table: [715, 460] as SPt, chairs: [[715, 430], [715, 492]] as readonly SPt[] };
+export const TERRACE_SET = { table: [690, 425] as SPt, chairs: [[690, 395], [690, 457]] as readonly SPt[] };
 /** Persona en la piscina: da vueltas alrededor de su centro. */
 export const SWIMMER: SPt = [(POOL.inner[0] + POOL.inner[2]) / 2, (POOL.inner[1] + POOL.inner[3]) / 2];
 

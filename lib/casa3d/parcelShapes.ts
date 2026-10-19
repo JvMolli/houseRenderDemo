@@ -3,9 +3,9 @@
  * px del plano del piso y a sólidos en metros.
  */
 import {
-  BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
+  BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
   LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STREET, STRIP, SWIMMER, TERRACE, TERRACE_SET,
-  TERRACE_STEPS, type Outfit, type Pose, type SPt,
+  type Outfit, type Pose, type SPt,
 } from './parcel';
 import { GROUND, GROUND_RECT, GROUND_SO_WALL, GROUND_WINDOW, TERRAIN_HALF, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
 import { mbox, pbox, type BoxSolid, type CylSolid, type Solid } from './shapes';
@@ -65,12 +65,8 @@ export const PLATFORMS: Slab[] = [
 
 const stepTop = (k: number, n: number) => LEVELS.garden + (k + 1) * (LEVELS.raised - LEVELS.garden) / (n + 1);
 
-/** Peldaños entre terraza y piscina y junto a los coches (25 cm cada uno). */
+/** Peldaños junto a los coches (25 cm cada uno). La terraza no tiene: se entra desde la escalera de entrada. */
 export const STEPS: Slab[] = [
-  ...TERRACE_STEPS.lines.slice(0, -1).map((y0, k, arr): Slab => {
-    const y1 = TERRACE_STEPS.lines[k + 1], r = TERRACE_STEPS.right;
-    return { points: sketchPoly([[diagonalX(y0), y0], [r, y0], [r, y1], [diagonalX(y1), y1]]), top: stepTop(k, arr.length), mat: 'terracePaving' };
-  }),
   ...CAR_STEPS.lines.slice(0, -1).map((x0, k, arr): Slab => {
     const x1 = CAR_STEPS.lines[k + 1], c = CAR_STEPS.center, rOut = c[0] - x0, rIn = c[0] - x1;
     return {
@@ -178,12 +174,29 @@ function poolBasin(): Solid[] {
 
 /** Cristalera en el borde de la terraza con sus dos remates. */
 function glassRail(): Solid[] {
-  const a = m(fromSketch(GLASS_RAIL.from)), b = m(fromSketch(GLASS_RAIL.to)), L = Math.hypot(b[0] - a[0], b[1] - a[1]);
   const top = LEVELS.raised + GLASS_RAIL.height, none: [number, number] = [0, 0];
+  /** Cristal entre a y b; con `posts`, poste grafito en cada extremo. */
+  const panel = (a: [number, number], b: [number, number], y0: number, y1: number, posts = true): Solid[] => {
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), glass = segmentBox(a, b, 0, L, none, 0.02, y0, y1, 'glass');
+    return posts ? [
+      glass,
+      segmentBox(a, b, -0.025, 0.025, none, 0.05, y0, y1 + 0.05, 'graphite'),
+      segmentBox(a, b, L - 0.025, L + 0.025, none, 0.05, y0, y1 + 0.05, 'graphite'),
+    ] : [glass];
+  };
+  // Lado de la escalera: hasta el peldaño a cota de terraza (por ahí se entra) y, en el tramo que
+  // sube por encima, un cristal por peldaño sobre su canto.
+  const { steps } = outdoorStair(), edge = m(fromSketch(GLASS_RAIL.points.at(-1)!))[1] - 0.01;
+  const x0 = (s: BoxSolid) => s.position[0] - s.size[0] / 2, x1 = (s: BoxSolid) => s.position[0] + s.size[0] / 2;
+  const entry = steps.find(s => Math.abs(s.size[1] - LEVELS.raised) < 1e-6)!;
+  const pts = [...GLASS_RAIL.points.map(p => m(fromSketch(p))), [x0(entry), edge] as [number, number]];
+  const upper = steps.filter(s => s.size[1] > LEVELS.raised + 1e-6), first = upper[0], last = upper.at(-1)!;
   return [
-    segmentBox(a, b, 0, L, none, 0.02, LEVELS.raised, top, 'glass'),
-    segmentBox(a, b, -0.025, 0.025, none, 0.05, LEVELS.raised, top + 0.05, 'graphite'),
-    segmentBox(a, b, L - 0.025, L + 0.025, none, 0.05, LEVELS.raised, top + 0.05, 'graphite'),
+    ...pts.slice(1).flatMap((b, i) => panel(pts[i], b, LEVELS.raised, top)),
+    // Escalera: cristales sin postes intermedios y un poste al pie y otro arriba.
+    ...upper.flatMap(s => panel([x0(s), edge], [x1(s), edge], s.size[1], s.size[1] + GLASS_RAIL.stairHeight, false)),
+    mb(x0(first) - 0.025, x0(first) + 0.025, first.size[1], first.size[1] + GLASS_RAIL.stairHeight + 0.05, edge - 0.025, edge + 0.025, 'graphite'),
+    mb(x1(last) - 0.025, x1(last) + 0.025, last.size[1], last.size[1] + GLASS_RAIL.stairHeight + 0.05, edge - 0.025, edge + 0.025, 'graphite'),
   ];
 }
 
