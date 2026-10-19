@@ -9,6 +9,7 @@ import { Motorcycle } from './Motorcycle';
 import { useMaterials } from './MaterialsContext';
 import { People } from './People';
 import { Solids } from './Solids';
+import { Street } from './Street';
 
 const POOL_INNER = rectPoints(sketchRect(POOL.inner));
 const POOL_OUTER = rectPoints(sketchRect(POOL.outer));
@@ -31,7 +32,7 @@ function SlabMesh({ slab }: { slab: Slab }) {
  * Parcela según el boceto: jardín, piscina y franja de césped a la cota de la
  * planta baja; terraza y coches 1 m más arriba con sus escalones; cerramiento
  * con portón, escalera exterior, cristalera, depuradora, el coche y los
- * elementos sin aclarar.
+ * elementos sin aclarar; fuera, la calle del pueblo por la que se entra.
  */
 export const Parcel = memo(function Parcel() {
   const m = useMaterials();
@@ -58,6 +59,7 @@ export const Parcel = memo(function Parcel() {
       </mesh>
 
       <Solids items={PARCEL_SOLIDS} />
+      <Street />
       <Car />
       <Motorcycle />
       <People />

@@ -4,10 +4,10 @@
  */
 import {
   BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, diagonalX, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
-  LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STRIP, SWIMMER, TERRACE, TERRACE_SET,
+  LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STREET, STRIP, SWIMMER, TERRACE, TERRACE_SET,
   TERRACE_STEPS, type Outfit, type Pose, type SPt,
 } from './parcel';
-import { GROUND_SO_WALL, GROUND_WINDOW, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
+import { GROUND, GROUND_RECT, GROUND_SO_WALL, GROUND_WINDOW, TERRAIN_HALF, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
 import { mbox, pbox, type BoxSolid, type CylSolid, type Solid } from './shapes';
 import { FH, OX, OZ, S, X, Z, type Vec3 } from './units';
 
@@ -335,6 +335,43 @@ export const PARCEL_SOLIDS: readonly Solid[] = [
   ...barbecue(),
   ...patioFurniture(),
 ];
+
+/* ---- Calle ------------------------------------------------------------------- */
+
+/** x (m) del lindero del portón: la calle va a lo largo de z, hacia -x. */
+const STREET_EDGE = X(fromSketch(GATE.from)[0]);
+
+/** Franjas de la calle en x (m), [min, max]: acera, bordillo y calzada. */
+export const STREET_BANDS = (() => {
+  const kerb = STREET_EDGE - STREET.sidewalk, road = kerb - STREET.kerb;
+  return {
+    sidewalk: [kerb, STREET_EDGE] as const,
+    kerb: [road, kerb] as const,
+    road: [road - STREET.road, road] as const,
+  };
+})();
+
+/** Tramo de la calle en z (m): el del terreno de la maqueta o, en el modo videojuego, hasta el horizonte. */
+export const STREET_SPAN = {
+  ground: [Z(GROUND_RECT[1]), Z(GROUND_RECT[3])] as const,
+  horizon: [GROUND.position[2] - TERRAIN_HALF, GROUND.position[2] + TERRAIN_HALF] as const,
+};
+
+/** Bordillo (rebajado frente al portón) y línea central discontinua entre z0 y z1. */
+function streetSolids([z0, z1]: readonly [number, number]): Solid[] {
+  const [k0, k1] = STREET_BANDS.kerb, [r0, r1] = STREET_BANDS.road, y = LEVELS.outside;
+  const [g0, g1] = [GATE.from, GATE.to].map(p => Z(fromSketch(p)[1])).sort((a, b) => a - b);
+  const kerb = (za: number, zb: number, h: number) => mbox([k1 - k0, h, zb - za, k0, y, za, 'kerb']);
+  const out: Solid[] = [kerb(z0, g0, STREET.kerbHeight), kerb(g0, g1, 0.02), kerb(g1, z1, STREET.kerbHeight)];
+  const xc = (r0 + r1) / 2;
+  for (let z = z0 + STREET.gap / 2; z + STREET.dash <= z1; z += STREET.dash + STREET.gap) {
+    out.push(mbox([STREET.line, 0.004, STREET.dash, xc - STREET.line / 2, y + STREET.lift, z, 'white']));
+  }
+  return out;
+}
+
+export const STREET_SOLIDS: readonly Solid[] = streetSolids(STREET_SPAN.ground);
+export const STREET_SOLIDS_LONG: readonly Solid[] = streetSolids(STREET_SPAN.horizon);
 
 /** Centro (m) y tamaño de un rectángulo del boceto, para planos sueltos (agua, barra rayada). */
 export function sketchRectCenter(r: Rect, y: number): { position: Vec3; size: [number, number] } {

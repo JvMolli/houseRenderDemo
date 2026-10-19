@@ -193,6 +193,22 @@ export function pavers(rnd: Rng, [r, g, b]: readonly [number, number, number], g
   return c;
 }
 
+/** Asfalto de calle: gris con árido claro y oscuro y manchas de desgaste que encajan al repetirse. */
+export function asphalt(rnd: Rng) {
+  const N = 512, c = noise(rnd, 96, 96, 94, 16, N), x = ctx(c);
+  for (let i = 0; i < 14; i++) {
+    const px = rnd() * N, py = rnd() * N, r = 30 + rnd() * 90;
+    x.fillStyle = rnd() < 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+    for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { x.beginPath(); x.arc(px + ox, py + oy, r, 0, 7); x.fill(); }
+  }
+  for (let k = 0; k < 7000; k++) {
+    const g = rnd() < 0.5 ? 150 + rnd() * 60 | 0 : 40 + rnd() * 30 | 0;
+    x.fillStyle = 'rgba(' + g + ',' + g + ',' + g + ',0.5)';
+    x.fillRect(rnd() * N, rnd() * N, 1 + rnd() * 1.5, 1 + rnd() * 1.5);
+  }
+  return c;
+}
+
 /** Rayado a 45° que encaja al repetirse (barra rayada del boceto), sobre fondo transparente. */
 export function hatch() {
   const N = 64, c = cv(N, N), x = ctx(c);

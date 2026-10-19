@@ -17,7 +17,7 @@ const PAVER = 2.4;
 export type ExtraMaterialKey =
   | 'floor' | 'bathOak' | 'ground' | 'compass' | 'ambilight' | 'ceiling' | 'sun'
   | 'grass' | 'terracePaving' | 'carsPaving' | 'water' | 'hatch'
-  | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear' | 'harleyBlue' | 'chrome';
+  | 'carBody' | 'carRoof' | 'carLightFront' | 'carLightRear' | 'harleyBlue' | 'chrome' | 'asphalt';
 export type Materials = Record<MaterialKey | ExtraMaterialKey, THREE.Material>;
 
 /** Crea todos los materiales. Llamar solo en cliente; liberar con disposeMaterials(). */
@@ -39,6 +39,8 @@ export function createMaterials(anisotropy: number): Materials {
     return t;
   };
   const MT = (o: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial({ roughness: 0.75, ...o });
+  // Físico con barniz y brillo de tela a 0: se ve igual que MT; el modo videojuego los sube.
+  const MP = (o: THREE.MeshPhysicalMaterialParameters) => new THREE.MeshPhysicalMaterial({ roughness: 0.75, ...o });
   const M = (color: number) => MT({ color });
   const basic = (o: THREE.MeshBasicMaterialParameters) => new THREE.MeshBasicMaterial(o);
 
@@ -56,11 +58,11 @@ export function createMaterials(anisotropy: number): Materials {
     black: M(0x1c1a19),
     wall: MT({ map: tx(tex.noise(rnd(), 246, 242, 236, 6, 256)) }),
     line: M(0xc9c0b2),
-    cushion: MT({ map: tx(tex.noise(rnd(), 231, 222, 208, 22), 3, 3) }),
-    sofa: MT({ map: tx(tex.noise(rnd(), 227, 219, 207, 22), 4, 4) }),
+    cushion: MP({ map: tx(tex.noise(rnd(), 231, 222, 208, 22), 3, 3) }),
+    sofa: MP({ map: tx(tex.noise(rnd(), 227, 219, 207, 22), 4, 4) }),
     rug: MT({ map: tx(tex.rug(rnd())) }),
-    linen: MT({ map: tx(tex.noise(rnd(), 250, 247, 242, 8), 3, 3) }),
-    throw: MT({ map: tx(tex.noise(rnd(), 201, 185, 163, 26), 4, 4) }),
+    linen: MP({ map: tx(tex.noise(rnd(), 250, 247, 242, 8), 3, 3) }),
+    throw: MP({ map: tx(tex.noise(rnd(), 201, 185, 163, 26), 4, 4) }),
     tub: MT({ color: 0xfdfdfb, roughness: 0.3 }),
     door: M(0x3a3a3a),
     frost: M(0xdfe6ea),
@@ -94,12 +96,12 @@ export function createMaterials(anisotropy: number): Materials {
     // Cristal tintado opaco: ventanillas del coche y ventanita de la planta baja (que es maciza).
     tinted: MT({ color: 0x1b252c, roughness: 0.08, metalness: 0.4 }),
     // Coche: pintura brillante y pilotos.
-    carBody: MT({ color: CAR.body, roughness: 0.25, metalness: 0.3 }),
-    carRoof: MT({ color: CAR.roof, roughness: 0.25, metalness: 0.3 }),
+    carBody: MP({ color: CAR.body, roughness: 0.25, metalness: 0.3 }),
+    carRoof: MP({ color: CAR.roof, roughness: 0.25, metalness: 0.3 }),
     carLightFront: basic({ color: 0xeef3f5 }),
     carLightRear: basic({ color: 0xa3121c }),
     // Moto: azul metalizado y cromados.
-    harleyBlue: MT({ color: 0x1d4fa3, roughness: 0.2, metalness: 0.45 }),
+    harleyBlue: MP({ color: 0x1d4fa3, roughness: 0.2, metalness: 0.45 }),
     chrome: MT({ color: 0xd8dade, roughness: 0.2, metalness: 0.6 }),
     // Baño: pizarra de las paredes (UV en metros en las cajas), piedra de los lavabos y plantas.
     slate: MT({ map: tx(tex.slate(rnd()), 1 / 1.2, 1 / 1.2), roughness: 0.7 }),
@@ -108,6 +110,9 @@ export function createMaterials(anisotropy: number): Materials {
     // Sin escribir profundidad: así la oclusión ambiental ve lo que hay detrás y no la aclara.
     showerGlass: new THREE.MeshStandardMaterial({ color: 0xe6eef0, transparent: true, opacity: 0.12, roughness: 0.05, depthWrite: false }),
     plant: M(0x4f7a3a),
+    // Calle del pueblo (al final para no mover las semillas de las texturas de arriba). Un canvas cubre 3 m.
+    asphalt: MT({ map: tx(tex.asphalt(rnd()), 1 / 3, 1 / 3), roughness: 0.9 }),
+    kerb: MT({ color: 0xc4c1b9, roughness: 0.8 }),
   };
 }
 

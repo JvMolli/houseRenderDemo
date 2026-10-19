@@ -10,9 +10,9 @@ import * as tex from './textures';
 
 type Key = keyof Materials;
 
-/** Relieve (normalScale) de los materiales con textura. */
+/** Relieve (normalScale) de los materiales con textura. Las paredes interiores van lisas. */
 const RELIEF: Partial<Record<Key, number>> = {
-  floor: 0.9, wood: 0.5, stone: 0.25, wall: 0.35, facade: 0.7, cushion: 0.6, sofa: 0.6, rug: 0.9, linen: 0.4,
+  floor: 0.9, wood: 0.5, stone: 0.25, facade: 0.7, cushion: 0.6, sofa: 0.6, rug: 0.9, linen: 0.4,
   throw: 0.7, table: 0.4, bathOak: 0.7, slate: 1.3, stoneBowl: 0.8, oakMedium: 0.5, terracePaving: 1.1, carsPaving: 1.2, grass: 1.0, garageDoor: 1.4, poolTile: 0.5, ground: 1.0,
 };
 /** Superficies lisas: un micro relieve común para que no parezcan de plástico. */
@@ -34,6 +34,11 @@ const SURFACE: Partial<Record<Key, { roughness: number }>> = {
 const REFLECT: Partial<Record<Key, number>> = {
   carBody: 0.2, carRoof: 0.2, harleyBlue: 0.2, chrome: 0.35, water: 0.25, glass: 0.2, tinted: 0.25, steel: 0.12, mirror: 0.1, tub: 0.05, graphite: 0.06, garageDoor: 0.05,
 };
+/** Pintura del coche y de la moto: capa de barniz brillante sobre el color. */
+const CLEARCOAT: Key[] = ['carBody', 'carRoof', 'harleyBlue'];
+/** Telas: brillo aterciopelado al mirarlas de canto. */
+const SHEEN: Key[] = ['sofa', 'cushion', 'linen', 'throw'];
+
 /** Emisivos (MeshBasic): se suben por encima de 1 para que el bloom los haga brillar. */
 const GLOW: Partial<Record<Key, number>> = { led: 5, screen: 1.6, ambilight: 3, carLightFront: 2.5, carLightRear: 3.5 };
 
@@ -127,6 +132,19 @@ export function applyQuality(materials: Materials, q: Quality, on: boolean) {
       if (swap) m.map = swap.off;
     }
     m.needsUpdate = true;
+  }
+  for (const key of CLEARCOAT) {
+    const m = materials[key];
+    if (!(m instanceof THREE.MeshPhysicalMaterial)) continue;
+    m.clearcoat = on ? 1 : 0;
+    m.clearcoatRoughness = 0.04;
+  }
+  for (const key of SHEEN) {
+    const m = materials[key];
+    if (!(m instanceof THREE.MeshPhysicalMaterial)) continue;
+    m.sheen = on ? 1 : 0;
+    m.sheenRoughness = 0.75;
+    m.sheenColor.setScalar(0.35);
   }
   for (const [key, k] of Object.entries(GLOW) as [Key, number][]) {
     const m = materials[key];

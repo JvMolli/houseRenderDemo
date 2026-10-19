@@ -24,6 +24,11 @@ Comprobaciones: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`
 - `lib/casa3d/sun.ts`: cálculo solar para Madrid y conversión de intensidades.
 - `lib/casa3d/textures.ts` y `materials.ts`: texturas de canvas con semilla y
   materiales compartidos.
+- Modo videojuego: `quality.ts` (relieves generados, brillos, barniz y tela),
+  `pbr.ts` (texturas fotografiadas por material), `reflection.ts` (reflejos del
+  suelo y la piscina) y `components/casa3d/GameMode.tsx`. Las texturas están en
+  `public/texturas/` y se rehacen con `node scripts/texturas.mjs` (CC0 de
+  Poly Haven y ambientCG; el script dice de dónde sale cada una).
 - `components/casa3d/`: escena (R3F) y UI. `app/casa/page.tsx`: la página.
 - Fotos: `PHOTOS` en `plan.ts` (posición e imagen en `public/fotos/`).
 

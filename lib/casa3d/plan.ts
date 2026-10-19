@@ -9,7 +9,7 @@ export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
   | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'slate' | 'stoneBowl' | 'plant' | 'oakMedium' | 'showerGlass'
-  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted';
+  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted' | 'kerb';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];
@@ -54,6 +54,8 @@ export const FP_BOUNDS: Rect = [
 
 /** Terreno: plano de 44 x 44 m (metros). */
 export const GROUND = { size: 44, position: [3.8, -0.01, 5] as Vec3 };
+/** Modo videojuego: el campo (y la calle) llegan hasta ±TERRAIN_HALF m del centro del terreno. */
+export const TERRAIN_HALF = 130;
 
 /** Esquinas del terreno en px del plano (x1, z1, x2, z2). */
 export const GROUND_RECT: Rect = [

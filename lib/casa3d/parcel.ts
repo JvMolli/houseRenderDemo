@@ -140,6 +140,15 @@ export const BOUNDARY_RUNS: readonly { points: readonly SPt[]; level: number }[]
  */
 export const GATE = { from: [815, 20] as SPt, to: [1105, 20] as SPt, thickness: 0.06, pillar: 0.3 };
 
+/**
+ * Calle del pueblo por la que entran los coches: sigue el lindero del portón
+ * por fuera, a la cota `outside`. Anchos (m) desde el lindero hacia fuera:
+ * acera (con la arqueta del saliente), bordillo y calzada con línea central
+ * discontinua. Frente al portón el bordillo está rebajado (vado). Acera y
+ * calzada van `lift` m por encima del terreno para que no parpadeen con él.
+ */
+export const STREET = { sidewalk: 1.4, kerb: 0.15, kerbHeight: 0.12, road: 5, line: 0.12, dash: 3, gap: 4, lift: 0.004 };
+
 /* ---- Barbacoa -------------------------------------------------------------------- */
 
 /**

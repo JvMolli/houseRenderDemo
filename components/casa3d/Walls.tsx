@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { FP_BOUNDS, SHADOW_CEILING_THICKNESS } from '@/lib/casa3d/plan';
+import { REFLECTION_LAYER } from '@/lib/casa3d/reflection';
 import { WALL_SOLIDS } from '@/lib/casa3d/solids';
 import { HT, X, Z } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
@@ -12,7 +13,7 @@ const CEILING_POS: [number, number, number] = [(X(cx1) + X(cx2)) / 2, HT + SHADO
 /**
  * Muros con huecos, correderas, pilar y chaflán (se bajan a 0,4 de altura con
  * `low`) y el techo invisible que solo proyecta sombra, para que el sol entre
- * únicamente por las ventanas.
+ * únicamente por las ventanas. Su cara pintada solo la ven los reflejos del suelo.
  */
 export const Walls = memo(function Walls({ low }: { low: boolean }) {
   const m = useMaterials();
@@ -22,6 +23,9 @@ export const Walls = memo(function Walls({ low }: { low: boolean }) {
         <Solids items={WALL_SOLIDS} />
       </group>
       <mesh material={m.ceiling} position={CEILING_POS} castShadow visible={!low}>
+        <boxGeometry args={CEILING_SIZE} />
+      </mesh>
+      <mesh material={m.white} position={CEILING_POS} layers-mask={1 << REFLECTION_LAYER} visible={!low}>
         <boxGeometry args={CEILING_SIZE} />
       </mesh>
     </>

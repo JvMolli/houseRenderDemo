@@ -3,18 +3,19 @@ import { Bloom, BrightnessContrast, EffectComposer, N8AO, SMAA, ToneMapping, Vig
 import { ToneMappingMode } from 'postprocessing';
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  CanvasTexture, Color, Mesh, MeshStandardMaterial, PMREMGenerator, RepeatWrapping, Scene, ShapeGeometry, SphereGeometry,
-  SRGBColorSpace, type WebGLRenderTarget,
+  Color, Mesh, PMREMGenerator, Scene, ShapeGeometry, SphereGeometry, SRGBColorSpace, type Material, type Object3D, type WebGLRenderTarget,
 } from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
+import { addMetricUV1, planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
+import type { Materials } from '@/lib/casa3d/materials';
 import { LEVELS } from '@/lib/casa3d/parcel';
-import { GROUND, GROUND_RECT } from '@/lib/casa3d/plan';
+import { applyPbr, disposePbr, loadPbr, pbrMaterials, type PbrSet } from '@/lib/casa3d/pbr';
+import { GROUND, GROUND_RECT, TERRAIN_HALF } from '@/lib/casa3d/plan';
 import { applyQuality, createQuality, disposeQuality, setReflections, type Quality } from '@/lib/casa3d/quality';
 import { lerpHex, type SunState } from '@/lib/casa3d/sun';
-import * as tex from '@/lib/casa3d/textures';
 import { OX, OZ, S } from '@/lib/casa3d/units';
 import { useMaterials } from './MaterialsContext';
+import { Reflections } from './Reflections';
 
 /** El cielo de three emite mucho: se atenúa para que no blanquee la imagen a mediodía. */
 const SKY_GAIN = 0.55;
@@ -64,43 +65,48 @@ function SkyDome({ sun }: { sun: SunState }) {
 
 /**
  * Campo seco hasta el horizonte alrededor del terreno de 44 m (con su hueco),
- * con la misma textura y el mismo ajuste de mosaico que el terreno.
+ * con su mismo material y el mismo mapeado: las texturas siguen sin corte.
  */
 function Terrain() {
-  const t = useMemo(() => {
-    const canvas = tex.field(tex.mulberry32(903));
-    const map = new CanvasTexture(canvas);
-    map.colorSpace = SRGBColorSpace;
-    const normal = new CanvasTexture(tex.normalMap(canvas, 3));
-    for (const x of [map, normal]) x.wrapS = x.wrapT = RepeatWrapping;
-    const half = GROUND.size / 2, big = 130;
-    const [cx, cz] = [OX + GROUND.position[0] * S, OZ + GROUND.position[2] * S];
-    const outer = [cx - big * S, cz - big * S, cx + big * S, cz + big * S] as const;
-    const geometry = setPlanarUV(
+  const m = useMaterials();
+  const geometry = useMemo(() => {
+    const half = GROUND.size / 2;
+    const [cx, cz] = [OX + GROUND.position[0] * S, OZ + GROUND.position[2] * S], big = TERRAIN_HALF * S;
+    const outer = [cx - big, cz - big, cx + big, cz + big] as const;
+    return setPlanarUV(
       new ShapeGeometry(planShape(rectPoints(outer), [rectPoints(GROUND_RECT)])),
-      GROUND.position[0] - half, -GROUND.position[2] - half, 4,
+      GROUND.position[0] - half, -GROUND.position[2] - half, GROUND.size,
     );
-    const material = new MeshStandardMaterial({ map, normalMap: normal, roughness: 0.95 });
-    return { map, normal, geometry, material };
   }, []);
-  useEffect(() => () => { t.map.dispose(); t.normal.dispose(); t.geometry.dispose(); t.material.dispose(); }, [t]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   return (
-    <mesh geometry={t.geometry} material={t.material} rotation-x={-Math.PI / 2}
+    <mesh geometry={geometry} material={m.ground} rotation-x={-Math.PI / 2}
       position-y={LEVELS.outside + GROUND.position[1]} receiveShadow />
   );
 }
 
+/** UV en metros (canal 1) para las geometrías que llevan textura fotografiada. */
+function addPbrUVs(scene: Object3D, materials: Materials) {
+  const pbr = pbrMaterials(materials);
+  const uses = (m: Material | Material[]) => (Array.isArray(m) ? m : [m]).some(x => pbr.has(x));
+  scene.traverse(o => { if (o instanceof Mesh && uses(o.material)) addMetricUV1(o.geometry); });
+}
+
 /**
- * Modo videojuego: relieve y brillos en los materiales, reflejo del cielo en
- * los que lo llevan (coche, agua, cristal, acero), cielo con nubes, campo hasta
- * el horizonte con bruma, agua con ondas y posprocesado (oclusión ambiental,
- * bloom suave, tonemapping neutro con exposición según el sol, antialiasing y
- * viñeta). Apagado, la escena queda como el original.
+ * Modo videojuego: texturas fotografiadas (madera, telas, yeso, césped,
+ * pavimentos, asfalto), barniz en la pintura del coche y la moto, brillo de
+ * tela, reflejo del cielo en los que lo llevan, reflejos planos en el suelo y
+ * la piscina, cielo con nubes, campo hasta el horizonte con bruma, agua con
+ * ondas y posprocesado (oclusión ambiental, bloom suave, tonemapping neutro
+ * con exposición según el sol, antialiasing y viñeta). Apagado, la escena
+ * queda como el original.
  */
 export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
   const materials = useMaterials();
   const gl = useThree(s => s.gl);
+  const scene = useThree(s => s.scene);
   const quality = useRef<Quality | null>(null);
+  const pbr = useRef<Promise<PbrSet> | null>(null);
   const envTarget = useRef<WebGLRenderTarget | null>(null);
   // Cielo sin disco solar para los reflejos (el sol ya lo pone la luz direccional)
   const env = useMemo(() => {
@@ -110,10 +116,27 @@ export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
   }, [gl]);
   const fogColor = useMemo(() => new Color().setRGB(...lerpHex(FOG.night, FOG.day, sun.kd), SRGBColorSpace), [sun.kd]);
 
+  // Al activar: relieves generados al momento y, en cuanto se descargan, las
+  // texturas fotografiadas. Al desactivar se deshace en orden inverso.
   useEffect(() => {
-    if (on && !quality.current) quality.current = createQuality(materials, gl.capabilities.getMaxAnisotropy());
-    if (quality.current) applyQuality(materials, quality.current, on);
-  }, [on, materials, gl]);
+    if (!on) return;
+    const anisotropy = gl.capabilities.getMaxAnisotropy();
+    const q = quality.current ??= createQuality(materials, anisotropy);
+    applyQuality(materials, q, true);
+    addPbrUVs(scene, materials);
+    let live = true, set: PbrSet | null = null;
+    (pbr.current ??= loadPbr(materials, anisotropy)).then(s => {
+      if (!live) return;
+      set = s;
+      applyPbr(s, true);
+      addPbrUVs(scene, materials);
+    }).catch(e => console.warn('Texturas del modo videojuego no disponibles', e));
+    return () => {
+      live = false;
+      if (set) applyPbr(set, false);
+      applyQuality(materials, q, false);
+    };
+  }, [on, materials, gl, scene]);
 
   // Reflejos: se regeneran del cielo cada vez que se mueve el sol.
   useEffect(() => {
@@ -133,6 +156,7 @@ export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
   }, [on, sun, gl]);
 
   useEffect(() => () => {
+    pbr.current?.then(disposePbr, () => {});
     setReflections(materials, null);
     envTarget.current?.dispose();
     env.pmrem.dispose();
@@ -156,6 +180,7 @@ export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
       <fog attach="fog" args={[fogColor, FOG.near, FOG.far]} />
       <SkyDome sun={sun} />
       <Terrain />
+      <Reflections />
       <EffectComposer multisampling={0}>
         <N8AO halfRes quality="medium" aoRadius={1} distanceFalloff={1} intensity={2} />
         <Bloom mipmapBlur luminanceThreshold={2.5} luminanceSmoothing={0.3} intensity={0.4} />

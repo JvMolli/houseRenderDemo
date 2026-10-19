@@ -64,7 +64,7 @@ export function Scene({ sun, low, lights, game, view, photoSpots, tour, onTourSt
   const background = useMemo(() => new Color().setRGB(...lerpHex(SKY_NIGHT, SKY_DAY, sun.kd), SRGBColorSpace), [sun.kd]);
 
   return (
-    <MaterialsProvider>
+    <MaterialsProvider game={game}>
       <primitive attach="background" object={background} />
       <hemisphereLight
         color={game ? skyFill : 0xffffff}
