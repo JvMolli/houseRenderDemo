@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plano de la parcela</title>
+<style>
+:root{
+  --bg:#f7f5f1; --ink:#2b2a28; --muted:#6f6a63;
+  --garden:#eaf0e2; --terrace:#ecdcc4; --house:#e6ded2; --cars:#dcdcda; --strip:#f2eee7;
+  --pool:#bfe0ef; --pool-line:#4f9bc2; --pool-text:#1f5f80; --glass:#4fa3d6; --equip:#ffffff;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1b1a19; --ink:#e8e5df; --muted:#a39e96;
+  --garden:#253027; --terrace:#3d3427; --house:#35312c; --cars:#2f3133; --strip:#2a2825;
+  --pool:#1f4a5e; --pool-line:#6cb7dc; --pool-text:#bfe3f5; --glass:#6cb7dc; --equip:#242321;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+main{max-width:1100px;margin:0 auto;padding:16px;}
+h1{font-size:20px;font-weight:600;margin:0 0 4px;}
+p.note{font-size:13px;color:var(--muted);margin:0 0 14px;}
+svg{width:100%;height:auto;display:block;}
+.garden{fill:var(--garden)}
+.terrace{fill:var(--terrace)}
+.house{fill:var(--house);stroke:var(--ink);stroke-width:2.5}
+.cars{fill:var(--cars)}
+.strip{fill:var(--strip)}
+.pool{fill:var(--pool);stroke:var(--pool-line);stroke-width:3}
+.pool-in{fill:none;stroke:var(--pool-line);stroke-width:1;opacity:.6}
+.equip{fill:var(--equip);stroke:var(--ink);stroke-width:2}
+.small{fill:var(--equip);stroke:var(--ink);stroke-width:1.5}
+.outline{fill:none;stroke:var(--ink);stroke-width:5;stroke-linejoin:round}
+.wall{fill:none;stroke:var(--ink);stroke-width:2.5}
+.step{fill:none;stroke:var(--ink);stroke-width:1.3}
+.stair{fill:var(--strip);stroke:var(--ink);stroke-width:2}
+.tread{stroke:var(--ink);stroke-width:1.2}
+.glass{stroke:var(--glass);stroke-width:5;stroke-linecap:round}
+.glass-tick{stroke:var(--ink);stroke-width:2}
+.hatch-line{stroke:var(--ink);stroke-width:1.4}
+.hatch-box{stroke:var(--ink);stroke-width:1.5}
+text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;fill:var(--ink);text-anchor:middle;dominant-baseline:middle}
+.lbl-big{font-size:44px;font-weight:600}
+.lbl{font-size:28px;font-weight:500}
+.lbl-sm{font-size:15px;fill:var(--muted)}
+.lbl-pool{font-size:26px;font-weight:500;fill:var(--pool-text)}
+</style>
+</head>
+<body>
+<main>
+<h1>Plano de la parcela</h1>
+<p class="note">Esquema sin escala a partir del boceto a mano.</p>
+
+<svg viewBox="100 -70 1310 900" role="img" aria-labelledby="t d">
+  <title id="t">Plano de la parcela</title>
+  <desc id="d">Parcela con lado izquierdo en diagonal. Arriba a la izquierda, la depuradora y la piscina en la zona de jardín. Abajo a la izquierda, la terraza exterior, separada del jardín por escalones y una cristalera. A la derecha, la zona de coches con escalones a su izquierda, y debajo la casa con una escalera en su lado izquierdo.</desc>
+  <defs>
+    <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="9" class="hatch-line"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo de la parcela (jardín) -->
+  <polygon class="garden" points="165,20 1105,20 1105,335 1350,335 1350,765 460,765"/>
+
+  <!-- Zonas -->
+  <polygon class="terrace" points="319.4,410 765,410 765,765 460,765"/>
+  <rect class="strip" x="840" y="335" width="510" height="120"/>
+  <rect class="cars" x="815" y="20" width="290" height="315"/>
+  <rect class="house" x="840" y="455" width="510" height="310"/>
+
+  <!-- Escalera junto a la casa -->
+  <rect class="stair" x="765" y="455" width="75" height="310"/>
+  <g>
+    <line class="tread" x1="765" y1="486" x2="840" y2="486"/>
+    <line class="tread" x1="765" y1="517" x2="840" y2="517"/>
+    <line class="tread" x1="765" y1="548" x2="840" y2="548"/>
+    <line class="tread" x1="765" y1="579" x2="840" y2="579"/>
+    <line class="tread" x1="765" y1="610" x2="840" y2="610"/>
+    <line class="tread" x1="765" y1="641" x2="840" y2="641"/>
+    <line class="tread" x1="765" y1="672" x2="840" y2="672"/>
+    <line class="tread" x1="765" y1="703" x2="840" y2="703"/>
+    <line class="tread" x1="765" y1="734" x2="840" y2="734"/>
+  </g>
+
+  <!-- Borde de la terraza -->
+  <polyline class="wall" points="319.4,410 765,410 765,455"/>
+
+  <!-- Escalones entre terraza y piscina -->
+  <g>
+    <line class="step" x1="310.7" y1="388" x2="620" y2="388"/>
+    <line class="step" x1="313.6" y1="395.3" x2="620" y2="395.3"/>
+    <line class="step" x1="316.5" y1="402.7" x2="620" y2="402.7"/>
+    <line class="step" x1="620" y1="388" x2="620" y2="410"/>
+  </g>
+
+  <!-- Cristalera -->
+  <line class="glass" x1="640" y1="410" x2="765" y2="410"/>
+  <line class="glass-tick" x1="640" y1="400" x2="640" y2="420"/>
+  <line class="glass-tick" x1="765" y1="400" x2="765" y2="420"/>
+
+  <!-- Escalones junto a los coches -->
+  <g>
+    <path class="step" d="M790,20 L790,300 A50,50 0 0 0 840,350"/>
+    <path class="step" d="M798.3,20 L798.3,300 A41.7,41.7 0 0 0 840,341.7"/>
+    <path class="step" d="M806.7,20 L806.7,300 A33.3,33.3 0 0 0 840,333.3"/>
+    <path class="step" d="M815,20 L815,300 A25,25 0 0 0 840,325"/>
+  </g>
+
+  <!-- Barra rayada entre coches y la franja de la casa -->
+  <rect x="880" y="323" width="225" height="24" fill="url(#hatch)" class="hatch-box"/>
+
+  <!-- Piscina y depuradora -->
+  <rect class="pool" x="450" y="110" width="265" height="150" rx="6"/>
+  <rect class="pool-in" x="462" y="122" width="241" height="126" rx="3"/>
+  <rect class="equip" x="210" y="55" width="60" height="56"/>
+
+  <!-- Marcas pequeñas del boceto -->
+  <rect class="small" x="880" y="457" width="20" height="18"/>
+  <rect class="small" x="842" y="708" width="22" height="18"/>
+
+  <!-- Contorno de la parcela -->
+  <polygon class="outline" points="165,20 1105,20 1105,335 1350,335 1350,765 460,765"/>
+
+  <!-- Saliente en el lindero superior -->
+  <rect class="equip" x="925" y="-28" width="60" height="48"/>
+  <rect class="small" x="943" y="-14" width="22" height="22"/>
+
+  <!-- Rótulos -->
+  <text class="lbl-pool" x="582" y="186">Piscina</text>
+  <text class="lbl-sm" x="280" y="84" style="text-anchor:start">Depuradora</text>
+  <text class="lbl-sm" x="465" y="372">Escalones</text>
+  <text class="lbl-sm" x="776" y="170" transform="rotate(-90 776 170)">Escalones</text>
+  <text class="lbl-sm" x="702" y="392">Cristalera</text>
+  <text class="lbl" x="580" y="600">Terraza exterior</text>
+  <text class="lbl" x="960" y="180">Coches</text>
+  <text class="lbl-big" x="1095" y="612">Casa</text>
+</svg>
+</main>
+</body>
+</html>
