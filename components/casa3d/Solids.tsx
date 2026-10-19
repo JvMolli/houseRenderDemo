@@ -22,7 +22,7 @@ export function Solids({ items }: { items: readonly Solid[] }) {
         <mesh key={mat} geometry={geometry} material={m[mat]} castShadow receiveShadow />
       ))}
       {glass.map((s, i) => (
-        <mesh key={i} position={s.position} material={m.glass} receiveShadow>
+        <mesh key={i} position={s.position} rotation-y={s.rotationY ?? 0} material={m.glass} receiveShadow>
           <boxGeometry args={s.size} />
         </mesh>
       ))}
