@@ -97,7 +97,7 @@ export const WALLS: readonly Wall[] = [
 /** Resto de piezas del grupo de muros (bajan con "Bajar paredes"). */
 export const WALL_PIECES: readonly Box[] = [
   [870, 942, 935, 990, 0, HT, 'wall'],
-  [504, 700, 534, 735, 0, HT, 'white'], // pilar
+  [504, 700, 534, 735, 0, HT, 'wood'], // pilar, revestido de madera como las correderas
   // Puertas correderas de suelo a techo (medio abiertas, por el lado del salón) + guías
   [633, 392, 638, 487, 0, 2.56, 'wood'], [631, 345, 640, 535, 2.56, 2.6, 'black'], [631, 398, 633, 400, 0.9, 1.5, 'black'],
   [633, 710, 638, 805, 0, 2.56, 'wood'], [631, 662, 640, 852, 2.56, 2.6, 'black'], [631, 797, 633, 799, 0.9, 1.5, 'black'],

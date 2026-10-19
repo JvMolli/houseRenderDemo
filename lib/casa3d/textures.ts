@@ -145,23 +145,23 @@ export function garageDoor(rnd: Rng) {
 }
 
 /**
- * Porcelánico gris: 4 x 4 baldosas por canvas, con un ligero cambio de tono
- * entre piezas, moteado fino y junta de 2 px. Cada baldosa ocupa T px.
+ * Porcelánico blanco roto: 4 x 4 baldosas por canvas, con un ligero cambio de
+ * tono entre piezas, moteado fino y junta de 2 px. Cada baldosa ocupa T px.
  */
 export const PORCELAIN_TILES = 4;
 export function porcelain(rnd: Rng) {
   const T = 256, N = T * PORCELAIN_TILES, c = cv(N, N), x = ctx(c);
   for (let i = 0; i < PORCELAIN_TILES; i++) for (let j = 0; j < PORCELAIN_TILES; j++) {
-    const v = 176 + (rnd() - 0.5) * 8;
-    x.fillStyle = 'rgb(' + (v | 0) + ',' + (v | 0) + ',' + ((v - 2) | 0) + ')';
+    const v = (rnd() - 0.5) * 6;
+    x.fillStyle = 'rgb(' + (238 + v | 0) + ',' + (233 + v | 0) + ',' + (224 + v | 0) + ')';
     x.fillRect(i * T, j * T, T, T);
   }
   for (let k = 0; k < 9000; k++) {
-    const g = 150 + rnd() * 60 | 0;
-    x.fillStyle = 'rgba(' + g + ',' + g + ',' + g + ',0.18)';
+    const g = 200 + rnd() * 40 | 0;
+    x.fillStyle = 'rgba(' + g + ',' + (g - 4) + ',' + (g - 12) + ',0.18)';
     x.fillRect(rnd() * N, rnd() * N, 1 + rnd() * 2, 1 + rnd() * 2);
   }
-  x.fillStyle = '#9a9a97';
+  x.fillStyle = '#cdc6b9';
   for (let k = 0; k < PORCELAIN_TILES; k++) { x.fillRect(k * T, 0, 2, N); x.fillRect(0, k * T, N, 2); }
   return c;
 }

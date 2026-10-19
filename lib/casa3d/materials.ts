@@ -35,7 +35,7 @@ export function createMaterials(anisotropy: number): Materials {
   const M = (color: number) => MT({ color });
   const basic = (o: THREE.MeshBasicMaterialParameters) => new THREE.MeshBasicMaterial(o);
 
-  // Porcelánico gris de 60 x 60 cm: las UV de ShapeGeometry van en metros.
+  // Porcelánico blanco roto de 60 x 60 cm: las UV de ShapeGeometry van en metros.
   const floorMap = tx(tex.porcelain(rnd()), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES), 1 / (FLOOR_TILE * tex.PORCELAIN_TILES));
 
   return {
