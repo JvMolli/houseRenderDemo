@@ -6,15 +6,17 @@ interface ControlsProps {
   hour: number;
   season: Season;
   low: boolean;
+  lights: boolean;
   sun: SunState;
   onView: (index: number) => void;
   onToggleWalls: () => void;
+  onToggleLights: () => void;
   onHour: (hour: number) => void;
   onSeason: (season: Season) => void;
 }
 
-/** Botones de vista, bajar/subir paredes, slider de hora y estaciones. */
-export function Controls({ hour, season, low, sun, onView, onToggleWalls, onHour, onSeason }: ControlsProps) {
+/** Botones de vista, bajar/subir paredes, luces, slider de hora y estaciones. */
+export function Controls({ hour, season, low, lights, sun, onView, onToggleWalls, onToggleLights, onHour, onSeason }: ControlsProps) {
   return (
     <>
       <div className={styles.row}>
@@ -22,6 +24,9 @@ export function Controls({ hour, season, low, sun, onView, onToggleWalls, onHour
           <button key={v.label} type="button" onClick={() => onView(i)}>{v.label}</button>
         ))}
         <button type="button" onClick={onToggleWalls}>{low ? 'Subir paredes' : 'Bajar paredes'}</button>
+        <button type="button" className={lights ? styles.active : undefined} aria-pressed={lights} onClick={onToggleLights}>
+          {lights ? 'Apagar luces' : 'Encender luces'}
+        </button>
       </div>
 
       <div className={`${styles.row} ${styles.timeRow}`}>

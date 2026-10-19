@@ -9,6 +9,7 @@ import { Bathroom } from './Bathroom';
 import { Bedrooms } from './Bedrooms';
 import { Building } from './Building';
 import { Floors } from './Floors';
+import { HouseLights } from './HouseLights';
 import { Kitchen } from './Kitchen';
 import { Living } from './Living';
 import { MaterialsProvider } from './MaterialsContext';
@@ -24,6 +25,7 @@ export interface ViewRequest {
 export interface SceneProps {
   sun: SunState;
   low: boolean;
+  lights: boolean;
   view: ViewRequest;
 }
 
@@ -41,7 +43,7 @@ function CameraRig({ view }: { view: ViewRequest }) {
   return null;
 }
 
-export function Scene({ sun, low, view }: SceneProps) {
+export function Scene({ sun, low, lights, view }: SceneProps) {
   const background = useMemo(() => new Color().setRGB(...lerpHex(SKY_NIGHT, SKY_DAY, sun.kd), SRGBColorSpace), [sun.kd]);
 
   return (
@@ -60,6 +62,7 @@ export function Scene({ sun, low, view }: SceneProps) {
         <Living low={low} />
         <Bedrooms />
         <Bathroom />
+        <HouseLights on={lights} />
       </group>
     </MaterialsProvider>
   );

@@ -176,6 +176,21 @@ export const AMBILIGHT_LIGHTS: readonly { x: Px; y: number; z: number; color: nu
 ];
 
 /* =====================================================================
+   LUCES DE TECHO (botón "Encender luces"): centro de cada estancia en px
+   ===================================================================== */
+
+export const CEILING_LIGHTS: readonly { room: string; x: Px; z: Px }[] = [
+  { room: 'salón (alfombra)', x: 354, z: 311 },
+  { room: 'salón (paso a la barra)', x: 354, z: 660 },
+  { room: 'barra', x: 228, z: 818 },
+  { room: 'cocina', x: 230, z: 1060 },
+  { room: 'recibidor', x: 452, z: 1100 },
+  { room: 'dormitorio 1', x: 810, z: 290 },
+  { room: 'dormitorio 2', x: 810, z: 697 },
+  { room: 'baño', x: 660, z: 1060 },
+];
+
+/* =====================================================================
    ARMARIOS Y DORMITORIOS
    ===================================================================== */
 
