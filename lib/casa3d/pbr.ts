@@ -41,6 +41,7 @@ export const PBR: Partial<Record<Key, PbrSpec>> = {
   carsPaving: { dir: 'adoquin', size: 2, color: 'tint', tint: 0xa8a6a0 },
   poolTile: { dir: 'gresite', size: 2, color: 'tint', tint: 0x96c8de },
   facade: { dir: 'estuco', size: 2, color: 'tint', tint: 0xeee9e1 },
+  facadeUpper: { dir: 'estuco', size: 2, color: 'tint', tint: 0xeee9e1 },
   sofa: { dir: 'espiga', size: 0.27, color: 'tint', tint: 0xe3dbcf },
   cushion: { dir: 'punto', size: 0.26, color: 'tint', tint: 0xe7ded0 },
   linen: { dir: 'lino', size: 0.27, color: 'tint', tint: 0xfaf7f2 },
@@ -97,6 +98,8 @@ export async function loadPbr(materials: Materials, anisotropy: number): Promise
  */
 export function applyPbr(set: PbrSet, on: boolean) {
   for (const [m, { maps, spec }] of set.maps) {
+    // Si el configurador le ha puesto otra textura (p. ej. madera), se respeta.
+    if (on && m.userData.finishTexture) continue;
     if (on) {
       const saved = {
         map: m.map, color: m.color.clone(), normalMap: m.normalMap, normalScale: m.normalScale.clone(),

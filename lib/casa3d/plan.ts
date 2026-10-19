@@ -9,7 +9,7 @@ export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
   | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'slate' | 'stoneBowl' | 'plant' | 'oakMedium' | 'showerGlass'
-  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted' | 'kerb' | 'cabinet';
+  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted' | 'kerb' | 'cabinet' | 'facadeUpper';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];

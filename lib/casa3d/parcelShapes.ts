@@ -6,10 +6,10 @@ import {
   BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
   LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STAIR_FLIGHTS, STAIR_LANDING, STREET, STRIP, SWIMMER, TERRACE,
   TERRACE_SET,
-  type Outfit, type Pose, type SPt,
+  type Outfit, type PersonId, type Pose, type SPt,
 } from './parcel';
 import { GROUND, GROUND_RECT, GROUND_SO_WALL, GROUND_WINDOW, TERRAIN_HALF, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
-import { mbox, pbox, type BoxSolid, type CylSolid, type Solid } from './shapes';
+import { insidePolygon, mbox, pbox, type BoxSolid, type CylSolid, type Solid } from './shapes';
 import { FH, OX, OZ, S, X, Z, type Vec3 } from './units';
 
 /** Polígono del boceto -> px del plano. */
@@ -29,15 +29,7 @@ export function sketchArc([cx, cy]: SPt, r: number, from: number, to: number, n 
   });
 }
 
-/** Punto dentro de un polígono (par-impar). */
-export function insidePolygon([x, z]: Pt, poly: readonly Pt[]): boolean {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, zi] = poly[i], [xj, zj] = poly[j];
-    if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) inside = !inside;
-  }
-  return inside;
-}
+export { insidePolygon };
 
 /* ---- Suelos ------------------------------------------------------------------- */
 
@@ -95,12 +87,15 @@ function segmentBox(a: [number, number], b: [number, number], s0: number, s1: nu
   };
 }
 
-/** Muro de 1 m sobre el suelo interior (cimentado hasta el jardín) y valla grafito encima, por dentro del lindero. */
+/**
+ * Muro (cimentado hasta el jardín) con la misma altura en todo el perímetro: 1 m sobre el
+ * terreno de fuera y la calle; valla grafito encima, por dentro del lindero.
+ */
 function boundarySolids(): Solid[] {
   const out: Solid[] = [], t = BOUNDARY.thickness;
   for (const run of BOUNDARY_RUNS) {
     const pts = run.points.map(p => m(fromSketch(p)));
-    const wallTop = run.level + BOUNDARY.wall, fenceTop = wallTop + BOUNDARY.fence;
+    const wallTop = LEVELS.outside + BOUNDARY.wall, fenceTop = wallTop + BOUNDARY.fence;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
       // Normal hacia dentro de la parcela
@@ -304,6 +299,7 @@ export type Activity = 'grill' | 'sunbathe' | 'sunbatheArm' | 'swim' | 'sip';
 
 /** Figura: postura, posición (m), giro, ropa y actividad. Mira hacia +X antes de girar. */
 export interface PersonSpec {
+  id: PersonId;
   pose: Pose;
   position: Vec3;
   rotationY: number;
@@ -323,15 +319,15 @@ export const PEOPLE: readonly PersonSpec[] = (() => {
   const seats = TERRACE_SET.chairs.map(sm);
   const pool = sketchRectCenter(POOL.inner, 0).size;
   return [
-    { pose: 'standing', position: [bx, LEVELS.garden, bz], rotationY: 0, outfit: OUTFITS.griller, activity: 'grill', phase: 0, holding: 'spatula' },
-    { pose: 'lying', position: [s1[0], LEVELS.garden, s1[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather1, activity: 'sunbathe', phase: 0 },
-    { pose: 'lying', position: [s2[0], LEVELS.garden, s2[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather2, activity: 'sunbatheArm', phase: 3 },
+    { id: 'griller', pose: 'standing', position: [bx, LEVELS.garden, bz], rotationY: 0, outfit: OUTFITS.griller, activity: 'grill', phase: 0, holding: 'spatula' },
+    { id: 'sunbather1', pose: 'lying', position: [s1[0], LEVELS.garden, s1[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather1, activity: 'sunbathe', phase: 0 },
+    { id: 'sunbather2', pose: 'lying', position: [s2[0], LEVELS.garden, s2[1]], rotationY: Math.PI, outfit: OUTFITS.sunbather2, activity: 'sunbatheArm', phase: 3 },
     {
-      pose: 'swimming', position: [wx, LEVELS.garden - POOL.waterBelow, wz], rotationY: 0, outfit: OUTFITS.swimmer,
+      id: 'swimmer', pose: 'swimming', position: [wx, LEVELS.garden - POOL.waterBelow, wz], rotationY: 0, outfit: OUTFITS.swimmer,
       activity: 'swim', phase: 0, lap: { center: [wx, wz], rx: pool[0] / 2 - 0.8, rz: pool[1] / 2 - 0.8 },
     },
-    { pose: 'sitting', position: [seats[0][0], LEVELS.raised, seats[0][1]], rotationY: 0, outfit: OUTFITS.guest1, activity: 'sip', phase: 0, holding: 'mojito' },
-    { pose: 'sitting', position: [seats[1][0], LEVELS.raised, seats[1][1]], rotationY: Math.PI, outfit: OUTFITS.guest2, activity: 'sip', phase: 3.5, holding: 'mojito' },
+    { id: 'guest1', pose: 'sitting', position: [seats[0][0], LEVELS.raised, seats[0][1]], rotationY: 0, outfit: OUTFITS.guest1, activity: 'sip', phase: 0, holding: 'mojito' },
+    { id: 'guest2', pose: 'sitting', position: [seats[1][0], LEVELS.raised, seats[1][1]], rotationY: Math.PI, outfit: OUTFITS.guest2, activity: 'sip', phase: 3.5, holding: 'mojito' },
   ];
 })();
 

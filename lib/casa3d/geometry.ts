@@ -70,25 +70,42 @@ function boxGeometry(size: Vec3, mat: MaterialKey, bevel: boolean): THREE.Buffer
 export function solidGeometry(s: Solid, bevel = false): THREE.BufferGeometry {
   const g = s.kind === 'box' ? boxGeometry(s.size, s.mat, bevel) : new THREE.CylinderGeometry(s.r, s.r, s.h, 24);
   // Cajas giradas: UV en su espacio local (a lo largo de la cara); el resto, en coordenadas del mundo.
-  if (s.kind === 'box' && METRIC_UV.has(s.mat)) metricUV(g, s.rotationY ? [0, s.position[1], 0] : s.position);
+  // Las que tienen caras de fachada también van en metros, como el resto de la fachada.
+  if (s.kind === 'box' && (METRIC_UV.has(s.mat) || s.faceMats)) metricUV(g, s.rotationY ? [0, s.position[1], 0] : s.position);
   if (s.kind === 'box' && s.rotationY) g.rotateY(s.rotationY);
   return g.translate(...s.position);
 }
 
+/** Trozo de una geometría sin índice: los vértices [start, start + count). */
+function slice(g: THREE.BufferGeometry, start: number, count: number) {
+  const out = new THREE.BufferGeometry();
+  for (const [name, attr] of Object.entries(g.attributes)) {
+    const a = attr as THREE.BufferAttribute;
+    out.setAttribute(name, new THREE.BufferAttribute(a.array.slice(start * a.itemSize, (start + count) * a.itemSize), a.itemSize, a.normalized));
+  }
+  return out;
+}
+
 /**
- * Fusiona los sólidos de cada material en una sola geometría. Con `bevel`
- * todo va sin índice, porque las cajas redondeadas no lo llevan.
+ * Fusiona los sólidos de cada material en una sola geometría; las cajas con
+ * `faceMats` reparten sus caras entre materiales. Con `bevel` o caras
+ * repartidas todo va sin índice (las cajas redondeadas y los trozos no lo llevan).
  */
 export function mergeByMaterial(solids: readonly Solid[], bevel = false): { mat: MaterialKey; geometry: THREE.BufferGeometry }[] {
   const groups = new Map<MaterialKey, THREE.BufferGeometry[]>();
+  const flat = bevel || solids.some(s => s.kind === 'box' && s.faceMats);
+  const add = (mat: MaterialKey, g: THREE.BufferGeometry) => groups.set(mat, [...groups.get(mat) ?? [], g]);
   for (const s of solids) {
-    const list = groups.get(s.mat) ?? [];
-    const g = solidGeometry(s, bevel);
-    if (bevel && g.index) {
-      list.push(g.toNonIndexed());
+    let g = solidGeometry(s, bevel);
+    if (flat && g.index) {
+      const n = g.toNonIndexed();
       g.dispose();
-    } else list.push(g);
-    groups.set(s.mat, list);
+      g = n;
+    }
+    if (s.kind === 'box' && s.faceMats) {
+      for (const { start, count, materialIndex = 0 } of g.groups) add(s.faceMats[materialIndex] ?? s.mat, slice(g, start, count));
+      g.dispose();
+    } else add(s.mat, g);
   }
   return [...groups].map(([mat, parts]) => {
     const geometry = mergeGeometries(parts);

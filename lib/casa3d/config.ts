@@ -42,7 +42,7 @@ export const FINISHES: readonly FinishSlot[] = [
     ],
   },
   {
-    id: 'paredes', label: 'Paredes', materials: ['wall'], base: 0xf6f2ec,
+    id: 'paredes', label: 'Paredes interiores', materials: ['wall'], base: 0xf6f2ec,
     options: [
       { id: 'blanco', label: 'Blanco roto', color: 0xf6f2ec },
       { id: 'perla', label: 'Gris perla', color: 0xdedcd8 },
@@ -94,12 +94,28 @@ export const FINISHES: readonly FinishSlot[] = [
     ],
   },
   {
-    id: 'fachada', label: 'Fachada', materials: ['facade'], base: 0xeee9e1,
+    // Planta baja, muros del cerramiento, escalera y muros de contención.
+    id: 'fachada', label: 'Fachada planta baja y muros', materials: ['facade'], base: 0xeee9e1,
     options: [
       { id: 'blanco', label: 'Blanco', color: 0xeee9e1 },
       { id: 'arena', label: 'Arena', color: 0xe6dccc },
       { id: 'gris', label: 'Gris claro', color: 0xcfcdc8 },
       { id: 'piedra', label: 'Piedra', color: 0xc9bca6 },
+      { id: 'antracita', label: 'Antracita', color: 0x55575a },
+      { id: 'terracota', label: 'Terracota', color: 0xc4876a },
+    ],
+  },
+  {
+    // Cara exterior de los muros del piso: aparte, para hacer la casa de dos colores.
+    id: 'fachadaAlta', label: 'Fachada planta alta', materials: ['facadeUpper'], base: 0xeee9e1,
+    options: [
+      { id: 'blanco', label: 'Blanco', color: 0xeee9e1 },
+      { id: 'arena', label: 'Arena', color: 0xe6dccc },
+      { id: 'gris', label: 'Gris claro', color: 0xcfcdc8 },
+      { id: 'piedra', label: 'Piedra', color: 0xc9bca6 },
+      { id: 'antracita', label: 'Antracita', color: 0x55575a },
+      { id: 'terracota', label: 'Terracota', color: 0xc4876a },
+      { id: 'madera', label: 'Revestimiento de madera', color: 0xd6b283, texture: 'oak', roughness: 0.65 },
     ],
   },
 ];

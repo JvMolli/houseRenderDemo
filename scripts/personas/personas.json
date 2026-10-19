@@ -1,0 +1,54 @@
+{
+  "griller": {
+    "phenotype": { "gender": 1.0, "age": 0.58, "muscle": 0.55, "weight": 0.55, "height": 0.52, "race": { "caucasian": 0.85, "african": 0.05, "asian": 0.1 } },
+    "skin": "toigo_light_skin_male_bronze.mhmat", "hair": "short02.mhclo", "eyebrows": "eyebrow008.mhclo",
+    "clothes": [
+      { "asset": "elvs_crude_t-shirt_male.mhclo", "role": "top" },
+      { "asset": "cortu_jeans_shorts.mhclo", "role": "bottom" },
+      { "asset": "shoes01.mhclo", "role": "shoes" },
+      { "asset": "wdg_scruffy_beard.mhclo", "role": "beard" }
+    ]
+  },
+  "sunbather1": {
+    "phenotype": { "gender": 0.0, "age": 0.5, "muscle": 0.45, "weight": 0.42, "height": 0.5, "cupsize": 0.55, "race": { "caucasian": 1.0, "african": 0.0, "asian": 0.0 } },
+    "skin": "young_caucasian_female.mhmat", "hair": "long01.mhclo", "eyebrows": "eyebrow001.mhclo",
+    "clothes": [
+      { "asset": "wolgade_female_top_01.mhclo", "role": "bikiniTop" },
+      { "asset": "wolgade_female_panties_01.mhclo", "role": "bikiniBottom" }
+    ]
+  },
+  "sunbather2": {
+    "phenotype": { "gender": 0.0, "age": 0.53, "muscle": 0.5, "weight": 0.45, "height": 0.52, "cupsize": 0.5, "race": { "caucasian": 0.1, "african": 0.9, "asian": 0.0 } },
+    "skin": "young_african_female.mhmat", "hair": "braid01.mhclo", "eyebrows": "eyebrow001.mhclo",
+    "clothes": [
+      { "asset": "wolgade_female_top_01.mhclo", "role": "bikiniTop" },
+      { "asset": "wolgade_female_panties_01.mhclo", "role": "bikiniBottom" }
+    ]
+  },
+  "swimmer": {
+    "phenotype": { "gender": 1.0, "age": 0.55, "muscle": 0.6, "weight": 0.5, "height": 0.52, "race": { "caucasian": 0.9, "african": 0.0, "asian": 0.1 } },
+    "skin": "young_caucasian_male.mhmat", "hair": "short01.mhclo", "eyebrows": "eyebrow005.mhclo",
+    "clothes": [
+      { "asset": "cortu_jeans_shorts.mhclo", "role": "bottom" }
+    ]
+  },
+  "guest1": {
+    "phenotype": { "gender": 1.0, "age": 0.81, "muscle": 0.45, "weight": 0.62, "height": 0.48, "race": { "caucasian": 1.0, "african": 0.0, "asian": 0.0 } },
+    "skin": "old_caucasian_male.mhmat", "hair": "short04.mhclo", "eyebrows": "eyebrow005.mhclo",
+    "clothes": [
+      { "asset": "elvs_crude_t-shirt_male.mhclo", "role": "top" },
+      { "asset": "toigo_wool_pants.mhclo", "role": "bottom" },
+      { "asset": "toigo_mj_cloth_shoes.mhclo", "role": "shoes" },
+      { "asset": "grinsegold_beard_sigmund_wip.mhclo", "role": "beard" }
+    ]
+  },
+  "guest2": {
+    "phenotype": { "gender": 0.0, "age": 0.62, "muscle": 0.45, "weight": 0.55, "height": 0.5, "cupsize": 0.55, "race": { "caucasian": 0.9, "african": 0.0, "asian": 0.1 } },
+    "skin": "middleage_caucasian_female.mhmat", "hair": "toigo_blunt_bob.mhclo", "eyebrows": "eyebrow001.mhclo",
+    "clothes": [
+      { "asset": "joepal_crude_t-shirt_female.mhclo", "role": "top" },
+      { "asset": "toigo_wool_pants.mhclo", "role": "bottom" },
+      { "asset": "toigo_ballet_flats.mhclo", "role": "shoes" }
+    ]
+  }
+}

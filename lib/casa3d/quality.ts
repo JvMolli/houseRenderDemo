@@ -13,7 +13,7 @@ type Key = keyof Materials;
 
 /** Relieve (normalScale) de los materiales con textura. Las paredes interiores van lisas. */
 const RELIEF: Partial<Record<Key, number>> = {
-  floor: 0.9, wood: 0.5, stone: 0.25, facade: 0.7, cushion: 0.6, sofa: 0.6, rug: 0.9, linen: 0.4,
+  floor: 0.9, wood: 0.5, stone: 0.25, facade: 0.7, facadeUpper: 0.7, cushion: 0.6, sofa: 0.6, rug: 0.9, linen: 0.4,
   throw: 0.7, table: 0.4, bathOak: 0.7, slate: 1.3, stoneBowl: 0.8, oakMedium: 0.5, terracePaving: 1.1, carsPaving: 1.2, grass: 1.0, garageDoor: 1.4, poolTile: 0.5, ground: 1.0,
 };
 /** Superficies lisas: un micro relieve común para que no parezcan de plástico. */

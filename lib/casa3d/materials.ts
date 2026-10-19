@@ -51,7 +51,7 @@ export function createMaterials(anisotropy: number): Materials {
   // Veta de roble compartida: puertas y muebles (claro) y baño (roble medio, teñido).
   const woodMap = tx(tex.wood(rnd()));
 
-  return {
+  const materials: Materials = {
     white: MT({ color: 0xf1ece4, roughness: 0.45 }),
     wood: MT({ map: woodMap }),
     stone: MT({ map: tx(tex.marble(rnd())), roughness: 0.35 }),
@@ -115,7 +115,11 @@ export function createMaterials(anisotropy: number): Materials {
     kerb: MT({ color: 0xc4c1b9, roughness: 0.8 }),
     // Frentes de la cocina: como `white`, aparte para el configurador.
     cabinet: MT({ color: 0xf1ece4, roughness: 0.45 }),
+    // Cara exterior de los muros del piso: el mismo enfoscado que la planta baja, aparte para el configurador.
+    facadeUpper: MT({}),
   };
+  (materials.facadeUpper as THREE.MeshStandardMaterial).map = (materials.facade as THREE.MeshStandardMaterial).map;
+  return materials;
 }
 
 /** Libera materiales y sus texturas. */

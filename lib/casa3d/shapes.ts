@@ -12,6 +12,8 @@ export interface BoxSolid {
   position: Vec3;
   rotationY?: number;
   mat: MaterialKey;
+  /** Material propio de algunas caras, en el orden de BoxGeometry: +X, -X, +Y, -Y, +Z, -Z. */
+  faceMats?: readonly (MaterialKey | undefined)[];
 }
 
 /** Cilindro vertical en metros, por su centro. */
@@ -24,6 +26,16 @@ export interface CylSolid {
 }
 
 export type Solid = BoxSolid | CylSolid;
+
+/** Punto dentro de un polígono (par-impar). */
+export function insidePolygon([x, z]: Pt, poly: readonly Pt[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, zi] = poly[i], [xj, zj] = poly[j];
+    if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) inside = !inside;
+  }
+  return inside;
+}
 
 /** box(): caja por tamaño y esquina mínima en metros. */
 export const mbox = ([w, h, d, x, y, z, mat]: MBox): BoxSolid => ({

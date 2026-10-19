@@ -51,6 +51,8 @@ export function applyFinishes(materials: Materials, config: FinishConfig, state:
       const map = o.texture ? texture(state, o.texture, anisotropy) : o.solid ? null : d.map;
       if (!map !== !m.map) m.needsUpdate = true;
       m.map = map;
+      // Marca para el modo videojuego: no taparla con su foto.
+      m.userData.finishTexture = !!o.texture;
       if (o.texture) m.color.set(0xffffff);
       else if (o.solid) m.color.copy(target);
       else m.color.copy(d.color).multiply(tint);

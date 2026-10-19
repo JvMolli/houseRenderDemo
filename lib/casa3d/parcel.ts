@@ -161,12 +161,15 @@ export const GENERIC_HEIGHT = 0.3;
 
 /* ---- Cerramiento -------------------------------------------------------------- */
 
-/** Muro de 1 m sobre el suelo interior y 50 cm de valla metálica grafito encima. */
+/**
+ * Muro de 1 m sobre el terreno de fuera (igual de alto en todo el perímetro: desde
+ * el jardín, que está 1 m más bajo, mide 2 m) y 50 cm de valla metálica grafito encima.
+ */
 export const BOUNDARY = { thickness: 0.2, wall: 1, fence: 0.5 };
 
 /**
- * Tramos del cerramiento con la cota del suelo interior. Donde la fachada está
- * en el lindero no hay muro, y en el frente de los coches va el portón (GATE).
+ * Tramos del cerramiento con la cota del suelo interior a cada lado. Donde la
+ * fachada está en el lindero no hay muro, y en el frente de los coches va el portón (GATE).
  */
 export const BOUNDARY_RUNS: readonly { points: readonly SPt[]; level: number }[] = [
   { points: [[165, 20], [815, 20]], level: LEVELS.garden },
@@ -224,7 +227,9 @@ export const TERRACE_SET = { table: [695, 450] as SPt, chairs: [[695, 420], [695
 export const SWIMMER: SPt = [(POOL.inner[0] + POOL.inner[2]) / 2, (POOL.inner[1] + POOL.inner[3]) / 2];
 
 /** Ropa: chico de la barbacoa, dos chicas al sol, quien nada y los dos de la terraza (guest1: hombre de pelo blanco con barba). */
-export const OUTFITS: Record<'griller' | 'sunbather1' | 'sunbather2' | 'swimmer' | 'guest1' | 'guest2', Outfit> = {
+/** Quién es cada persona: también nombra su modelo 3D (public/personas/<id>.glb). */
+export type PersonId = 'griller' | 'sunbather1' | 'sunbather2' | 'swimmer' | 'guest1' | 'guest2';
+export const OUTFITS: Record<PersonId, Outfit> = {
   griller: { skin: 0xc58b62, hair: 0x2e221b, top: 0x3b6ea5, bottom: 0xd2c19f, shoes: 0x2b2b2b, legs: 'shorts' },
   sunbather1: { skin: 0xe9b893, hair: 0xcfa760, top: 0xe0605a, bottom: 0xe0605a, shoes: 0xe9b893, legs: 'bare', longHair: true },
   sunbather2: { skin: 0x8a5a3c, hair: 0x15120f, top: 0x2a9d8f, bottom: 0x2a9d8f, shoes: 0x8a5a3c, legs: 'bare', longHair: true },

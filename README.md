@@ -31,6 +31,9 @@ Comprobaciones: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`
   Poly Haven y ambientCG; el script dice de dónde sale cada una).
 - `components/casa3d/`: escena (R3F) y UI. `app/casa/page.tsx`: la página.
 - Fotos: `PHOTOS` en `plan.ts` (posición e imagen en `public/fotos/`).
+- Personas del patio: modelos realistas en `public/personas/` (MakeHuman, CC0) que
+  siguen las animaciones de las figuras de `lib/casa3d/people.ts` (`retarget.ts`).
+  Se rehacen con `scripts/personas/construye.sh` a partir de `personas.json`.
 - Configurador: las opciones están en `lib/casa3d/config.ts` (la primera de cada
   apartado es la casa tal cual) y `finishes.ts` las aplica a los materiales.
 
