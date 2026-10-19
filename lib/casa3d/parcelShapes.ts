@@ -4,7 +4,8 @@
  */
 import {
   BBQ, BOUNDARY, BOUNDARY_RUNS, CAR_STEPS, CARS, DIAGONAL, fromSketch, GATE, GENERIC_HEIGHT, GLASS_RAIL, HATCH, LEVELS, MARKS,
-  LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STREET, STRIP, SWIMMER, TERRACE, TERRACE_SET,
+  LOUNGERS, OUTCROP, OUTDOOR_STAIR, OUTFITS, OUTLINE, POOL, PUMP, STAIR, STAIR_FLIGHTS, STAIR_LANDING, STREET, STRIP, SWIMMER, TERRACE,
+  TERRACE_SET,
   type Outfit, type Pose, type SPt,
 } from './parcel';
 import { GROUND, GROUND_RECT, GROUND_SO_WALL, GROUND_WINDOW, TERRAIN_HALF, type MaterialKey, type MBox, type Pt, type Rect } from './plan';
@@ -130,25 +131,29 @@ function diagonalWallInnerZ(x: number) {
 }
 
 /**
- * Escalera exterior: peldaños macizos desde la franja (cota del jardín) hasta un
- * rellano frente a la puerta, a cota FH. Donde el muro en diagonal se acerca a
- * la fachada, peldaños y rellano se recortan hasta su cara interior.
+ * Escalera exterior: peldaños macizos en dos tramos, del jardín a la terraza
+ * (que hace de descanso) y de la terraza a un rellano frente a la puerta, a
+ * cota FH. Donde el muro en diagonal se acerca a la fachada, peldaños y rellano
+ * se recortan hasta su cara interior.
  */
 export function outdoorStair(): { steps: BoxSolid[]; landing: Slab; tread: number; rise: number } {
-  const [sx1, sz1, , sz2] = sketchRect(STAIR), z1 = Z(sz1);
+  const [, sz1, , sz2] = sketchRect(STAIR), z1 = Z(sz1);
   const outer = (x: number) => Math.min(Z(sz2), diagonalWallInnerZ(x) - 0.02);
   const [d1, d2] = OUTDOOR_STAIR.entranceDoor, mg = OUTDOOR_STAIR.landingMargin;
   const landing0 = X(d1) - mg, landing1 = X(d2) + mg;
-  const start = X(sx1); // borde de la franja
-  const risers = Math.ceil(FH / OUTDOOR_STAIR.maxRiser - 1e-9), rise = FH / risers, treads = risers - 1;
-  const tread = (landing0 - start) / treads;
-  const step = (xa: number, xb: number, top: number): BoxSolid => {
-    const z2 = outer(xb);
-    return { kind: 'box', size: [xb - xa, top, z2 - z1], position: [(xa + xb) / 2, top / 2, (z1 + z2) / 2], mat: 'facade' };
+  const { rise, lowerTreads, upperTreads } = STAIR_FLIGHTS, tread = OUTDOOR_STAIR.tread;
+  // Descanso (terraza) en x: de la esquina de la casa al arranque del segundo tramo.
+  const rest0 = X(fromSketch([0, STAIR_LANDING.from])[0]), rest1 = landing0 - upperTreads * tread;
+  const step = (xa: number, top: number): BoxSolid => {
+    const xb = xa + tread, z2 = outer(xb);
+    return { kind: 'box', size: [tread, top, z2 - z1], position: [(xa + xb) / 2, top / 2, (z1 + z2) / 2], mat: 'facade' };
   };
   const px = (x: number, z: number): Pt => [OX + x * S, OZ + z * S];
   return {
-    steps: Array.from({ length: treads }, (_, i) => step(start + i * tread, start + (i + 1) * tread, (i + 1) * rise)),
+    steps: [
+      ...Array.from({ length: lowerTreads }, (_, i) => step(rest0 - (lowerTreads - i) * tread, LEVELS.garden + (i + 1) * rise)),
+      ...Array.from({ length: upperTreads }, (_, i) => step(rest1 + i * tread, LEVELS.raised + (i + 1) * rise)),
+    ],
     landing: {
       points: [px(landing0, z1), px(landing1, z1), px(landing1, outer(landing1)), px(landing0, outer(landing0))],
       top: FH, mat: 'facade',
@@ -184,12 +189,9 @@ function glassRail(): Solid[] {
       segmentBox(a, b, L - 0.025, L + 0.025, none, 0.05, y0, y1 + 0.05, 'graphite'),
     ] : [glass];
   };
-  // Lado de la escalera: hasta el peldaño a cota de terraza (por ahí se entra) y, en el tramo que
-  // sube por encima, un cristal por peldaño sobre su canto.
-  const { steps } = outdoorStair(), edge = m(fromSketch(GLASS_RAIL.points.at(-1)!))[1] - 0.01;
+  // Tramo que sube de la terraza a la puerta: un cristal por peldaño sobre su canto, del lado de la terraza.
+  const { steps } = outdoorStair(), pts = GLASS_RAIL.points.map(p => m(fromSketch(p))), edge = pts.at(-1)![1] - 0.01;
   const x0 = (s: BoxSolid) => s.position[0] - s.size[0] / 2, x1 = (s: BoxSolid) => s.position[0] + s.size[0] / 2;
-  const entry = steps.find(s => Math.abs(s.size[1] - LEVELS.raised) < 1e-6)!;
-  const pts = [...GLASS_RAIL.points.map(p => m(fromSketch(p))), [x0(entry), edge] as [number, number]];
   const upper = steps.filter(s => s.size[1] > LEVELS.raised + 1e-6), first = upper[0], last = upper.at(-1)!;
   return [
     ...pts.slice(1).flatMap((b, i) => panel(pts[i], b, LEVELS.raised, top)),

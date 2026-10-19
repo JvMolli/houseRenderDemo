@@ -6,7 +6,7 @@
  * la entrada (fachada SE) queda junto a la escalera exterior.
  */
 import { FP, FP_BOUNDS, type Pt, type Rect } from './plan';
-import type { Px } from './units';
+import { FH, OX, S, X, type Px } from './units';
 
 /** Punto del boceto en unidades del SVG. */
 export type SPt = readonly [sx: number, sy: number];
@@ -61,19 +61,51 @@ export const OUTLINE: readonly SPt[] = [
   DIAGONAL.from, [1105, 20], [1105, 335], [1350, 335], [1350, 765], CHAMFER_NE, BATH_CORNER,
 ];
 
+/* ---- Escalera exterior ---------------------------------------------------------- */
+
+/**
+ * Sube pegada a la fachada SE en dos tramos: del jardín a la terraza, que hace
+ * de descanso a su cota, y de ahí a un rellano frente a la puerta de entrada (a
+ * la altura del piso). El ancho es el del boceto salvo donde el muro del lindero
+ * se acerca: ahí peldaños y rellano llegan hasta el muro. `maxRiser`: tabica
+ * máxima (m); `tread`: huella (m); `landingMargin`: lo que sobresale el rellano
+ * a cada lado de la puerta (m).
+ */
+export const OUTDOOR_STAIR = { maxRiser: 0.2, tread: 0.25, landingMargin: 0.1, entranceDoor: [405, 500] as readonly [Px, Px] };
+export const STAIR: Rect = [765, 455, 840, 765];
+
+/** Tabica (m) y huellas de cada tramo: del jardín a la terraza y de la terraza al rellano de la puerta. */
+export const STAIR_FLIGHTS = (() => {
+  const risers = Math.ceil(FH / OUTDOOR_STAIR.maxRiser - 1e-9), rise = FH / risers;
+  const lower = Math.round((LEVELS.raised - LEVELS.garden) / rise);
+  return { rise, lowerTreads: lower - 1, upperTreads: risers - lower - 1 };
+})();
+
+/**
+ * Descanso de la escalera, que es parte de la terraza (sy en el boceto): de la
+ * esquina de la casa a donde arranca el tramo que sube a la puerta.
+ */
+export const STAIR_LANDING = {
+  from: SKETCH_HOUSE[1],
+  to: toSketch([OX + (X(OUTDOOR_STAIR.entranceDoor[0]) - OUTDOOR_STAIR.landingMargin - STAIR_FLIGHTS.upperTreads * OUTDOOR_STAIR.tread) * S, 0])[1],
+};
+
 /* ---- Zonas elevadas (terraza y coches); el resto de la parcela es césped ------- */
 
 /**
- * Terraza: triángulo entre la diagonal, el borde de la cristalera hacia la
- * piscina (sy 350) y la escalera de entrada (sx 765). No tiene escalones
- * propios: se entra desde el peldaño de la escalera que queda a su altura.
+ * Terraza (unos 12 m²): triángulo entre la diagonal, el borde de la
+ * cristalera hacia la piscina (sy `TERRACE_EDGE`) y la escalera, más el
+ * descanso de la escalera, que la cruza de lado a lado. No tiene escalones
+ * propios: se entra por la escalera de entrada.
  */
-export const TERRACE_EDGE = 350;
-export const TERRACE: readonly SPt[] = [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], [765, TERRACE_EDGE], [765, diagonalY(765)]];
+export const TERRACE_EDGE = 381;
+export const TERRACE: readonly SPt[] = [
+  [diagonalX(TERRACE_EDGE), TERRACE_EDGE], [STAIR[0], TERRACE_EDGE], [STAIR[0], STAIR_LANDING.from], [STAIR[2], STAIR_LANDING.from],
+  [STAIR[2], STAIR_LANDING.to], [STAIR[0], STAIR_LANDING.to], [STAIR[0], diagonalY(STAIR[0])],
+];
 /** Zona de coches; la esquina inferior izquierda la redondean los escalones (radio 25). */
 export const CARS: Rect = [815, 20, 1105, 335];
 export const STRIP: Rect = [840, 335, 1350, 455];
-export const STAIR: Rect = [765, 455, 840, 765];
 
 /* ---- Escalones (cada uno baja 25 cm: 4 peldaños = 1 m) ----------------------- */
 
@@ -98,11 +130,14 @@ export const PUMP = { rect: [280, 55, 340, 111] as Rect, height: 1 };
 /* ---- Cristalera en el borde de la terraza ----------------------------------- */
 
 /**
- * Cristalera de la terraza: todo el borde hacia la piscina y el lado del
- * jardín junto al arranque de la escalera, hasta el peldaño a cota de terraza.
- * La escalera lleva también cristal en el tramo que sube por encima de la terraza.
+ * Cristalera de la terraza: el borde hacia la piscina y el lado del jardín y
+ * del primer tramo de la escalera, hasta el descanso. El tramo que sube de la
+ * terraza a la puerta lleva también cristal por el lado de la terraza.
  */
-export const GLASS_RAIL = { points: [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], [765, TERRACE_EDGE]] as readonly SPt[], height: 1, stairHeight: 0.9 };
+export const GLASS_RAIL = {
+  points: [[diagonalX(TERRACE_EDGE), TERRACE_EDGE], [STAIR[0], TERRACE_EDGE], [STAIR[0], STAIR_LANDING.from]] as readonly SPt[],
+  height: 1, stairHeight: 0.9,
+};
 
 /* ---- Elementos sin aclarar, dibujados tal cual en el boceto ------------------ */
 
@@ -184,7 +219,7 @@ export interface Outfit {
  */
 export const LOUNGERS = { at: [[600, 300], [680, 300]] as readonly SPt[], length: 1.9, width: 0.65 };
 /** Terraza: mesita redonda con dos sillas enfrentadas (centros en el boceto). */
-export const TERRACE_SET = { table: [690, 425] as SPt, chairs: [[690, 395], [690, 457]] as readonly SPt[] };
+export const TERRACE_SET = { table: [695, 450] as SPt, chairs: [[695, 420], [695, 480]] as readonly SPt[] };
 /** Persona en la piscina: da vueltas alrededor de su centro. */
 export const SWIMMER: SPt = [(POOL.inner[0] + POOL.inner[2]) / 2, (POOL.inner[1] + POOL.inner[3]) / 2];
 
@@ -218,14 +253,3 @@ export const CAR = {
   length: 4.0, width: 1.75, height: 1.5, wheelbase: 2.54, wheelRadius: 0.32,
   body: 0xf2f2ef, roof: 0x16181a,
 };
-
-/* ---- Escalera exterior ---------------------------------------------------------- */
-
-/**
- * Arranca junto a la franja (se llega desde los coches) y sube pegada a la
- * fachada SE hasta un rellano frente a la puerta de entrada (a la altura del
- * piso). El ancho es el del boceto salvo donde el muro del lindero se acerca:
- * ahí peldaños y rellano llegan hasta el muro. `maxRiser`: tabica máxima (m);
- * `landingMargin`: lo que sobresale el rellano a cada lado de la puerta (m).
- */
-export const OUTDOOR_STAIR = { maxRiser: 0.2, landingMargin: 0.1, entranceDoor: [405, 500] as readonly [Px, Px] };
