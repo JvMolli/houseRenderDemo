@@ -20,7 +20,7 @@ const METRIC_UV: ReadonlySet<MaterialKey> = new Set(['slate']);
  * y finísimos que se pintan como puntos sueltos.
  */
 const BEVEL: ReadonlySet<MaterialKey> = new Set([
-  'wood', 'white', 'stone', 'cushion', 'sofa', 'linen', 'throw', 'table', 'steel', 'tub', 'handle', 'shelf',
+  'wood', 'white', 'cabinet', 'stone', 'cushion', 'sofa', 'linen', 'throw', 'table', 'steel', 'tub', 'handle', 'shelf',
   'oakMedium', 'mirror',
 ]);
 /** Radio máximo del canto (m); en piezas finas, una cuarta parte del lado menor. */

@@ -9,7 +9,7 @@ export type MaterialKey =
   | 'white' | 'wood' | 'stone' | 'black' | 'wall' | 'line' | 'cushion' | 'sofa'
   | 'rug' | 'linen' | 'throw' | 'tub' | 'door' | 'frost' | 'table' | 'steel'
   | 'glass' | 'led' | 'screen' | 'facade' | 'handle' | 'shelf' | 'slate' | 'stoneBowl' | 'plant' | 'oakMedium' | 'showerGlass'
-  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted' | 'kerb';
+  | 'mirror' | 'garageDoor' | 'graphite' | 'poolTile' | 'tinted' | 'kerb' | 'cabinet';
 
 /** B(): caja por rectángulo del plano (px) y alturas (m). */
 export type Box = readonly [x1: Px, z1: Px, x2: Px, z2: Px, y0: number, y1: number, mat: MaterialKey];
@@ -143,12 +143,12 @@ export const STOOLS: readonly Pt[] = [[199, 765], [291, 765], [199, 875], [291, 
 
 /** Cocina en U. */
 export const KITCHEN: readonly Box[] = [
-  [78, 897, 149, 932, 0, 2.4, 'white'],                                                           // columna pegada a la pared
-  [78, 934, 149, 1016, 0, 0.845, 'white'], [78, 934, 149, 1016, 0.855, 1.995, 'white'], [78, 934, 149, 1016, 2.005, 2.4, 'white'], // nevera panelada
+  [78, 897, 149, 932, 0, 2.4, 'cabinet'],                                                           // columna pegada a la pared
+  [78, 934, 149, 1016, 0, 0.845, 'cabinet'], [78, 934, 149, 1016, 0.855, 1.995, 'cabinet'], [78, 934, 149, 1016, 2.005, 2.4, 'cabinet'], // nevera panelada
   [149, 972, 151, 974, 0.95, 1.6, 'steel'],
-  [78, 1017, 149, 1161, 0, 0.86, 'white'],                                                        // bajos pared SO (placa + horno)
-  [78, 1161, 316, 1232, 0, 0.86, 'white'],                                                        // bajos bajo ventana (fregadero)
-  [316, 1042, 387, 1232, 0, 0.86, 'white'],                                                       // retorno con cajones
+  [78, 1017, 149, 1161, 0, 0.86, 'cabinet'],                                                        // bajos pared SO (placa + horno)
+  [78, 1161, 316, 1232, 0, 0.86, 'cabinet'],                                                        // bajos bajo ventana (fregadero)
+  [316, 1042, 387, 1232, 0, 0.86, 'cabinet'],                                                       // retorno con cajones
   [78, 1017, 151, 1159, 0.86, 0.9, 'stone'],
   [78, 1159, 318, 1232, 0.86, 0.9, 'stone'],
   [314, 1040, 389, 1159, 0.86, 0.9, 'stone'],
@@ -161,7 +161,7 @@ export const KITCHEN: readonly Box[] = [
   [78, 1016, 80, 1232, 0.9, 1.5, 'stone'], [80, 1230, 316, 1232, 0.9, 1.0, 'stone'], [80, 1230, 213, 1232, 1.0, 1.5, 'stone'], // frontal
   [80, 1016, 120, 1161, 1.5, 2.15, 'wood'], [120, 1087, 121, 1089, 1.5, 2.15, 'handle'],         // altos de roble
   [112, 1016, 114, 1161, 1.49, 1.5, 'led'],                                                       // LED bajo altos
-  [78, 1016, 125, 1161, 2.15, 2.4, 'white'],
+  [78, 1016, 125, 1161, 2.15, 2.4, 'cabinet'],
 ];
 
 export const KITCHEN_CYLS: readonly Cyl[] = [

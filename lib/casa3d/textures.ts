@@ -54,12 +54,22 @@ export function wood(rnd: Rng) {
   return c;
 }
 
-/** Mármol oscuro con vetas cobrizas. */
-export function marble(rnd: Rng) {
-  const N = 1024, c = cv(N, N), x = ctx(c);
-  x.fillStyle = '#2b2522'; x.fillRect(0, 0, N, N);
+/** Colores de un mármol: fondo, y manchas y vetas como [r, variación de r, g, variación de g, b]. */
+export interface MarbleLook {
+  base: string;
+  blotch: readonly [number, number, number, number, number];
+  vein: readonly [number, number, number, number, number];
+}
+/** Mármol oscuro con vetas cobrizas (la encimera de la casa). */
+export const DARK_MARBLE: MarbleLook = { base: '#2b2522', blotch: [70, 30, 58, 20, 50], vein: [195, 40, 135, 30, 75] };
+/** Mármol blanco con vetas grises. */
+export const WHITE_MARBLE: MarbleLook = { base: '#ebe7e1', blotch: [200, 25, 196, 25, 192], vein: [118, 40, 116, 38, 114] };
+
+export function marble(rnd: Rng, look: MarbleLook = DARK_MARBLE) {
+  const N = 1024, c = cv(N, N), x = ctx(c), [br, bdr, bg, bdg, bb] = look.blotch, [vr, vdr, vg, vdg, vb] = look.vein;
+  x.fillStyle = look.base; x.fillRect(0, 0, N, N);
   for (let i = 0; i < 300; i++) {
-    x.fillStyle = 'rgba(' + (70 + rnd() * 30 | 0) + ',' + (58 + rnd() * 20 | 0) + ',50,0.07)';
+    x.fillStyle = 'rgba(' + (br + rnd() * bdr | 0) + ',' + (bg + rnd() * bdg | 0) + ',' + bb + ',0.07)';
     x.beginPath(); x.arc(rnd() * N, rnd() * N, 20 + rnd() * 90, 0, 7); x.fill();
   }
   const vein = (lw: number, a: number) => {
@@ -70,7 +80,7 @@ export function marble(rnd: Rng) {
       x.quadraticCurveTo(px + rnd() * 60 - 30, py + rnd() * 60 - 30, nx, ny);
       px = nx; py = ny;
     }
-    x.strokeStyle = 'rgba(' + (195 + rnd() * 40 | 0) + ',' + (135 + rnd() * 30 | 0) + ',75,' + a + ')';
+    x.strokeStyle = 'rgba(' + (vr + rnd() * vdr | 0) + ',' + (vg + rnd() * vdg | 0) + ',' + vb + ',' + a + ')';
     x.lineWidth = lw; x.stroke();
   };
   for (let i = 0; i < 10; i++) vein(1.5 + rnd() * 2, 0.55);
@@ -190,6 +200,17 @@ export function pavers(rnd: Rng, [r, g, b]: readonly [number, number, number], g
   }
   x.fillStyle = grout;
   for (let k = 0; k < n; k++) { x.fillRect(k * T, 0, 2, N); x.fillRect(0, k * T, N, 2); }
+  return c;
+}
+
+/** Granito gris: moteado fino negro, blanco y gris sobre gris medio. */
+export function granite(rnd: Rng) {
+  const N = 1024, c = noise(rnd, 138, 136, 132, 16, N), x = ctx(c);
+  for (let k = 0; k < 60000; k++) {
+    const t = rnd(), g = (t < 0.4 ? 45 + rnd() * 30 : t < 0.75 ? 205 + rnd() * 40 : 105 + rnd() * 40) | 0;
+    x.fillStyle = 'rgba(' + g + ',' + g + ',' + (g * 0.97 | 0) + ',0.8)';
+    x.fillRect(rnd() * N, rnd() * N, 1 + rnd() * 2.5, 1 + rnd() * 2.5);
+  }
   return c;
 }
 

@@ -164,3 +164,103 @@
   transform: scaleX(0);
   transform-origin: left;
 }
+
+/* Configurador: panel sobre el lienzo, a la derecha (abajo en móvil). */
+.config {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 290px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+  padding: 12px 14px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  color: var(--text);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+  touch-action: pan-y;
+}
+
+.configHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.configHead h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.configHead button {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.configHead .configClose {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.configSlot {
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.configSlot legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.configSlot legend span {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.swatch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+}
+
+.swatch[aria-pressed="true"] {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .config {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 60%;
+  }
+}

@@ -9,19 +9,22 @@ interface ControlsProps {
   lights: boolean;
   game: boolean;
   tour: boolean;
+  config: boolean;
   sun: SunState;
   onView: (index: number) => void;
   onToggleWalls: () => void;
   onToggleLights: () => void;
   onToggleGame: () => void;
   onToggleTour: () => void;
+  onToggleConfig: () => void;
   onHour: (hour: number) => void;
   onSeason: (season: Season) => void;
 }
 
-/** Botones de vista, bajar/subir paredes, luces, slider de hora y estaciones. */
+/** Botones de vista, bajar/subir paredes, luces, modos, configurador, slider de hora y estaciones. */
 export function Controls({
-  hour, season, low, lights, game, tour, sun, onView, onToggleWalls, onToggleLights, onToggleGame, onToggleTour, onHour, onSeason,
+  hour, season, low, lights, game, tour, config, sun, onView, onToggleWalls, onToggleLights, onToggleGame, onToggleTour, onToggleConfig,
+  onHour, onSeason,
 }: ControlsProps) {
   return (
     <>
@@ -38,6 +41,9 @@ export function Controls({
         </button>
         <button type="button" className={tour ? styles.active : undefined} aria-pressed={tour} onClick={onToggleTour}>
           {tour ? 'Parar tour' : 'Modo tour'}
+        </button>
+        <button type="button" className={config ? styles.active : undefined} aria-pressed={config} onClick={onToggleConfig}>
+          Configurador
         </button>
       </div>
 

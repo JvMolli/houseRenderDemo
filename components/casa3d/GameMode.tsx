@@ -7,6 +7,7 @@ import {
 } from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
 import { addMetricUV1, planShape, rectPoints, setPlanarUV } from '@/lib/casa3d/geometry';
+import type { FinishConfig } from '@/lib/casa3d/config';
 import type { Materials } from '@/lib/casa3d/materials';
 import { LEVELS } from '@/lib/casa3d/parcel';
 import { applyPbr, disposePbr, loadPbr, pbrMaterials, type PbrSet } from '@/lib/casa3d/pbr';
@@ -101,7 +102,7 @@ function addPbrUVs(scene: Object3D, materials: Materials) {
  * con exposición según el sol, antialiasing y viñeta). Apagado, la escena
  * queda como el original.
  */
-export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
+export function GameMode({ on, sun, finishes }: { on: boolean; sun: SunState; finishes: FinishConfig }) {
   const materials = useMaterials();
   const gl = useThree(s => s.gl);
   const scene = useThree(s => s.scene);
@@ -117,7 +118,8 @@ export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
   const fogColor = useMemo(() => new Color().setRGB(...lerpHex(FOG.night, FOG.day, sun.kd), SRGBColorSpace), [sun.kd]);
 
   // Al activar: relieves generados al momento y, en cuanto se descargan, las
-  // texturas fotografiadas. Al desactivar se deshace en orden inverso.
+  // texturas fotografiadas. Al desactivar se deshace en orden inverso. Al
+  // cambiar un acabado también: se deshace, <Finishes> lo aplica y se rehace encima.
   useEffect(() => {
     if (!on) return;
     const anisotropy = gl.capabilities.getMaxAnisotropy();
@@ -136,7 +138,7 @@ export function GameMode({ on, sun }: { on: boolean; sun: SunState }) {
       if (set) applyPbr(set, false);
       applyQuality(materials, q, false);
     };
-  }, [on, materials, gl, scene]);
+  }, [on, finishes, materials, gl, scene]);
 
   // Reflejos: se regeneran del cielo cada vez que se mueve el sol.
   useEffect(() => {

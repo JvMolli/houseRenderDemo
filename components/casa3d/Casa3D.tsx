@@ -2,9 +2,11 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DEFAULT_FINISHES, parseFinishes, type FinishConfig } from '@/lib/casa3d/config';
 import { PHOTOS, TOUR } from '@/lib/casa3d/plan';
 import { sunState, type Season } from '@/lib/casa3d/sun';
 import styles from './Casa3D.module.css';
+import { Configurator } from './Configurator';
 import { Controls } from './Controls';
 import { PhotoButtons } from './PhotoButtons';
 import { PhotoViewer } from './PhotoViewer';
@@ -13,12 +15,27 @@ import type { ViewRequest } from './Scene';
 // Three y R3F solo en cliente: la UI se renderiza en servidor y el Canvas se carga aparte.
 const Viewer = dynamic(() => import('./Viewer'), { ssr: false });
 
+/** Los acabados elegidos se recuerdan en este navegador. */
+const FINISHES_KEY = 'casa3d.acabados';
+
+function loadFinishes(): FinishConfig {
+  try {
+    const saved = typeof window === 'undefined' ? null : window.localStorage.getItem(FINISHES_KEY);
+    return saved ? parseFinishes(JSON.parse(saved)) : DEFAULT_FINISHES;
+  } catch {
+    return DEFAULT_FINISHES;
+  }
+}
+
 export default function Casa3D() {
   const [hour, setHour] = useState(17.5);
   const [season, setSeason] = useState<Season>('equinoccio');
   const [low, setLow] = useState(false);
   const [lights, setLights] = useState(false);
   const [game, setGame] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
+  // Solo lo usan el lienzo (cliente) y el panel (cerrado al cargar): no cambia el HTML del servidor.
+  const [finishes, setFinishes] = useState(loadFinishes);
   const [view, setView] = useState<ViewRequest>({ index: 0, seq: 0 });
   const [photoId, setPhotoId] = useState<string | null>(null);
   const photoSpots = useRef(new Map<string, HTMLElement>());
@@ -37,6 +54,9 @@ export default function Casa3D() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [tour]);
+  useEffect(() => {
+    try { window.localStorage.setItem(FINISHES_KEY, JSON.stringify(finishes)); } catch { /* sin almacenamiento: no se recuerda */ }
+  }, [finishes]);
   const sun = useMemo(() => sunState(hour, season), [hour, season]);
   const photo = PHOTOS.find(p => p.id === photoId);
 
@@ -44,7 +64,7 @@ export default function Casa3D() {
     <>
       <div className={styles.wrap}>
         <Viewer
-          sun={sun} low={low} lights={lights} game={game} view={view} photoSpots={photoSpots}
+          sun={sun} low={low} lights={lights} game={game} finishes={finishes} view={view} photoSpots={photoSpots}
           tour={tour} onTourStop={setTourStop} onTourEnd={endTour} tourProgress={tourProgress}
         />
         <PhotoButtons spots={photoSpots} onOpen={setPhotoId} />
@@ -55,6 +75,14 @@ export default function Casa3D() {
             <div className={styles.tourTrack}><div ref={tourBar} className={styles.tourBar} /></div>
           </div>
         )}
+        {configOpen && (
+          <Configurator
+            config={finishes}
+            onChange={(slot, option) => setFinishes(f => ({ ...f, [slot]: option }))}
+            onReset={() => setFinishes(DEFAULT_FINISHES)}
+            onClose={() => setConfigOpen(false)}
+          />
+        )}
       </div>
       <Controls
         hour={hour}
@@ -63,12 +91,14 @@ export default function Casa3D() {
         lights={lights}
         game={game}
         tour={tour}
+        config={configOpen}
         sun={sun}
         onView={index => { setTour(false); setView(v => ({ index, seq: v.seq + 1 })); }}
         onToggleWalls={() => setLow(l => !l)}
         onToggleLights={() => setLights(l => !l)}
         onToggleGame={() => setGame(g => !g)}
         onToggleTour={() => setTour(t => !t)}
+        onToggleConfig={() => setConfigOpen(o => !o)}
         onHour={setHour}
         onSeason={setSeason}
       />

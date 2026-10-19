@@ -113,6 +113,8 @@ export function createMaterials(anisotropy: number): Materials {
     // Calle del pueblo (al final para no mover las semillas de las texturas de arriba). Un canvas cubre 3 m.
     asphalt: MT({ map: tx(tex.asphalt(rnd()), 1 / 3, 1 / 3), roughness: 0.9 }),
     kerb: MT({ color: 0xc4c1b9, roughness: 0.8 }),
+    // Frentes de la cocina: como `white`, aparte para el configurador.
+    cabinet: MT({ color: 0xf1ece4, roughness: 0.45 }),
   };
 }
 

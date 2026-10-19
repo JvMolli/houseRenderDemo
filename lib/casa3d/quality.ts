@@ -1,8 +1,9 @@
 /**
  * Modo videojuego: relieve (mapas de normales generados de las propias
  * texturas), brillos y reflejos del entorno, y emisivos que resplandecen con
- * el bloom. Todo se genera la primera vez que se activa y se deshace al
- * desactivarlo, dejando los materiales como estaban.
+ * el bloom. Se genera la primera vez que se activa y se deshace al
+ * desactivarlo, dejando los materiales como estaban. Cada activación parte
+ * del estado del momento, así que respeta lo que haya cambiado el configurador.
  */
 import * as THREE from 'three';
 import type { Materials } from './materials';
@@ -17,11 +18,11 @@ const RELIEF: Partial<Record<Key, number>> = {
 };
 /** Superficies lisas: un micro relieve común para que no parezcan de plástico. */
 const MICRO: Key[] = [
-  'white', 'black', 'door', 'frost', 'steel', 'graphite', 'tub', 'line', 'handle', 'shelf', 'carBody', 'carRoof', 'mirror',
+  'white', 'cabinet', 'black', 'door', 'frost', 'steel', 'graphite', 'tub', 'line', 'handle', 'shelf', 'carBody', 'carRoof', 'mirror',
 ];
 /** Brillo de las superficies. */
 const SURFACE: Partial<Record<Key, { roughness: number }>> = {
-  floor: { roughness: 0.3 }, stone: { roughness: 0.32 }, white: { roughness: 0.35 }, tub: { roughness: 0.15 },
+  floor: { roughness: 0.3 }, stone: { roughness: 0.32 }, white: { roughness: 0.35 }, cabinet: { roughness: 0.35 }, tub: { roughness: 0.15 },
   steel: { roughness: 0.25 }, mirror: { roughness: 0.03 }, glass: { roughness: 0.03 }, carBody: { roughness: 0.12 },
   carRoof: { roughness: 0.12 }, tinted: { roughness: 0.03 }, water: { roughness: 0.02 }, graphite: { roughness: 0.35 },
   harleyBlue: { roughness: 0.12 }, chrome: { roughness: 0.08 },
@@ -47,7 +48,11 @@ type Saved = {
 };
 
 export interface Quality {
+  /** Relieves fijos (micro relieve, ondas, campo). */
   normals: Map<THREE.MeshStandardMaterial, { map: THREE.Texture; scale: number }>;
+  /** Relieves sacados de cada textura de canvas (RELIEF), según la que lleve el material al activar. */
+  relief: Map<HTMLCanvasElement, THREE.Texture>;
+  anisotropy: number;
   /** Texturas que se cambian en el modo (terreno exterior: campo seco). */
   maps: Map<THREE.MeshStandardMaterial, { on: THREE.Texture; off: THREE.Texture | null }>;
   /** Campo seco para el terreno que llega al horizonte. */
@@ -59,16 +64,28 @@ export interface Quality {
 
 const std = (m: THREE.Material | undefined): m is THREE.MeshStandardMaterial => m instanceof THREE.MeshStandardMaterial;
 
-/** Genera los mapas de normales (la primera vez que se activa el modo). */
+/** Mapa de normales sacado de un canvas de color. */
+function fromCanvas(canvas: HTMLCanvasElement, strength: number, anisotropy: number) {
+  const t = new THREE.CanvasTexture(tex.normalMap(canvas, strength));
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = anisotropy;
+  return t;
+}
+
+/** Relieve de la textura que lleva ahora el material, con su misma escala (se genera una vez por canvas). */
+function reliefFor(q: Quality, m: THREE.MeshStandardMaterial) {
+  const canvas = m.map?.image;
+  if (!m.map || !(canvas instanceof HTMLCanvasElement)) return null;
+  let t = q.relief.get(canvas);
+  if (!t) q.relief.set(canvas, t = fromCanvas(canvas, 3, q.anisotropy));
+  t.wrapS = m.map.wrapS; t.wrapT = m.map.wrapT;
+  t.repeat.copy(m.map.repeat); t.offset.copy(m.map.offset);
+  return t;
+}
+
+/** Genera los mapas fijos (la primera vez que se activa el modo). */
 export function createQuality(materials: Materials, anisotropy: number): Quality {
   const normals: Quality['normals'] = new Map();
-  const fromCanvas = (canvas: HTMLCanvasElement, strength: number, like?: THREE.Texture) => {
-    const t = new THREE.CanvasTexture(tex.normalMap(canvas, strength));
-    t.wrapS = like?.wrapS ?? THREE.RepeatWrapping; t.wrapT = like?.wrapT ?? THREE.RepeatWrapping;
-    if (like) { t.repeat.copy(like.repeat); t.offset.copy(like.offset); }
-    t.anisotropy = anisotropy;
-    return t;
-  };
   // Terreno exterior: campo seco (un canvas cubre 4 m) en lugar del plano beige
   const fieldCanvas = tex.field(tex.mulberry32(903));
   const fieldMap = new THREE.CanvasTexture(fieldCanvas);
@@ -81,19 +98,14 @@ export function createQuality(materials: Materials, anisotropy: number): Quality
     on.repeat.set(11, 11);
     maps.set(materials.ground, { on, off: materials.ground.map });
   }
-  const fieldNormal = fromCanvas(fieldCanvas, 3);
-  for (const [key, scale] of Object.entries(RELIEF) as [Key, number][]) {
-    if (key === 'ground') continue;
-    const m = materials[key];
-    if (std(m) && m.map?.image instanceof HTMLCanvasElement) normals.set(m, { map: fromCanvas(m.map.image, 3, m.map), scale });
-  }
-  const micro = fromCanvas(tex.noise(tex.mulberry32(901), 128, 128, 128, 40, 256), 1.5);
+  const fieldNormal = fromCanvas(fieldCanvas, 3, anisotropy);
+  const micro = fromCanvas(tex.noise(tex.mulberry32(901), 128, 128, 128, 40, 256), 1.5, anisotropy);
   micro.repeat.set(2, 2);
   for (const key of MICRO) {
     const m = materials[key];
     if (std(m)) normals.set(m, { map: micro, scale: 0.15 });
   }
-  const water = fromCanvas(tex.ripples(tex.mulberry32(902)), 6);
+  const water = fromCanvas(tex.ripples(tex.mulberry32(902)), 6, anisotropy);
   water.repeat.set(1.5, 1.5);
   if (std(materials.water)) normals.set(materials.water, { map: water, scale: 0.35 });
   if (std(materials.ground)) {
@@ -101,22 +113,21 @@ export function createQuality(materials: Materials, anisotropy: number): Quality
     n.repeat.set(11, 11);
     normals.set(materials.ground, { map: n, scale: 1 });
   }
-  return { normals, maps, field: { map: fieldMap, normal: fieldNormal }, saved: new Map(), colors: new Map(), water };
+  return { normals, relief: new Map(), anisotropy, maps, field: { map: fieldMap, normal: fieldNormal }, saved: new Map(), colors: new Map(), water };
 }
 
 /** Activa o desactiva el modo videojuego sobre los materiales compartidos. */
 export function applyQuality(materials: Materials, q: Quality, on: boolean) {
   const touched = new Set<THREE.Material>([...q.normals.keys()]);
-  for (const key of [...Object.keys(SURFACE), ...Object.keys(REFLECT)] as Key[]) touched.add(materials[key]);
+  for (const key of [...Object.keys(RELIEF), ...Object.keys(SURFACE), ...Object.keys(REFLECT)] as Key[]) touched.add(materials[key]);
   for (const m of touched) {
     if (!std(m)) continue;
+    const key = (Object.keys(materials) as Key[]).find(k => materials[k] === m);
     if (on) {
-      if (!q.saved.has(m)) {
-        q.saved.set(m, { normalMap: m.normalMap, normalScale: m.normalScale.clone(), roughness: m.roughness, envMap: m.envMap, envMapIntensity: m.envMapIntensity });
-      }
-      const n = q.normals.get(m);
+      q.saved.set(m, { normalMap: m.normalMap, normalScale: m.normalScale.clone(), roughness: m.roughness, envMap: m.envMap, envMapIntensity: m.envMapIntensity });
+      const fixed = q.normals.get(m), relief = key && RELIEF[key] !== undefined ? reliefFor(q, m) : null;
+      const n = fixed ?? (relief && key ? { map: relief, scale: RELIEF[key]! } : undefined);
       if (n) { m.normalMap = n.map; m.normalScale.set(n.scale, n.scale); }
-      const key = (Object.keys(materials) as Key[]).find(k => materials[k] === m);
       const s = key ? SURFACE[key] : undefined;
       if (s) m.roughness = s.roughness;
       const swap = q.maps.get(m);
@@ -167,7 +178,7 @@ export function setReflections(materials: Materials, env: THREE.Texture | null) 
 }
 
 export function disposeQuality(q: Quality) {
-  const done = new Set<THREE.Texture>([q.field.map, q.field.normal]);
+  const done = new Set<THREE.Texture>([q.field.map, q.field.normal, ...q.relief.values()]);
   for (const t of done) t.dispose();
   for (const { on } of q.maps.values()) on.dispose();
   for (const { map } of q.normals.values()) if (!done.has(map)) { map.dispose(); done.add(map); }

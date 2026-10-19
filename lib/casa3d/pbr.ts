@@ -17,8 +17,9 @@ interface PbrSpec {
   /**
    * `albedo`: el color de la foto sustituye al mapa del material (su color
    * queda de tinte). `tint`: la foto es gris (media lineal 0,5) y se tiñe con
-   * `tint` (sRGB), el color que tenía el material. `detail`: el material
-   * conserva su color y solo toma relieve, rugosidad y oclusión.
+   * `tint` (sRGB), el color medio del mapa original, y con el color del
+   * material (el tinte del configurador). `detail`: el material conserva su
+   * color y solo toma relieve, rugosidad y oclusión.
    */
   color: 'albedo' | 'tint' | 'detail';
   tint?: number;
@@ -90,19 +91,21 @@ export async function loadPbr(materials: Materials, anisotropy: number): Promise
   return set;
 }
 
-/** Pone (o quita) las texturas fotografiadas en los materiales compartidos. */
+/**
+ * Pone (o quita) las texturas fotografiadas en los materiales compartidos.
+ * Cada activación guarda el estado del momento (con lo que haya elegido el configurador).
+ */
 export function applyPbr(set: PbrSet, on: boolean) {
   for (const [m, { maps, spec }] of set.maps) {
     if (on) {
-      if (!set.saved.has(m)) {
-        set.saved.set(m, {
-          map: m.map, color: m.color.clone(), normalMap: m.normalMap, normalScale: m.normalScale.clone(),
-          roughness: m.roughness, roughnessMap: m.roughnessMap, aoMap: m.aoMap, aoMapIntensity: m.aoMapIntensity,
-        });
-      }
+      const saved = {
+        map: m.map, color: m.color.clone(), normalMap: m.normalMap, normalScale: m.normalScale.clone(),
+        roughness: m.roughness, roughnessMap: m.roughnessMap, aoMap: m.aoMap, aoMapIntensity: m.aoMapIntensity,
+      };
+      set.saved.set(m, saved);
       if (maps.color) m.map = maps.color;
       // Gris de media 0,5: el doble del tinte devuelve el color original de media.
-      if (spec.color === 'tint' && spec.tint !== undefined) m.color.setHex(spec.tint).multiplyScalar(2);
+      if (spec.color === 'tint' && spec.tint !== undefined) m.color.setHex(spec.tint).multiplyScalar(2).multiply(saved.color);
       m.normalMap = maps.normal;
       m.normalScale.setScalar(spec.normal ?? 1);
       m.roughnessMap = maps.arm;
